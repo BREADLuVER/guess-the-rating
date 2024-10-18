@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Amplify } from 'aws-amplify';
 import { withAuthenticator } from '@aws-amplify/ui-react';
+import { getCurrentUser } from 'aws-amplify/auth';
 import axios from 'axios';
 import '@aws-amplify/ui-react/styles.css';
 import config from './amplifyconfiguration.json';
@@ -42,7 +43,7 @@ function useWindowSize() {
   return windowSize;
 }
 
-function App({ signOut, user }) {
+function App() {
   const size = useWindowSize();
   let variant;
 
@@ -58,6 +59,9 @@ function App({ signOut, user }) {
   const [games, setGames] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredGames, setFilteredGames] = useState([]);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); 
+  console.log('user:', user);
 
   // Fetch games from the backend and sort by popularity
   const fetchGames = async () => {
@@ -73,8 +77,30 @@ function App({ signOut, user }) {
 
   // Fetch games on component mount
   useEffect(() => {
+    async function currentAuthenticatedUser() {
+      try {
+        const { username, userId, signInDetails } = await getCurrentUser();
+        console.log(`The username: ${username}`);
+        console.log(`The userId: ${userId}`);
+        console.log(`The signInDetails: ${signInDetails}`);
+        
+        // Update the user state with the authenticated user data
+        setUser({ username, userId, signInDetails });
+        
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setLoading(false);  // Set loading to false after the user is fetched
+      }
+    }
+    
+    currentAuthenticatedUser();
     fetchGames();
   }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   // Function to handle the search input change
   const handleSearchChange = (e) => {
@@ -119,8 +145,7 @@ function App({ signOut, user }) {
     <Router>
       <div className="nav-container">
         {/* Responsive Navigation Component */}
-        <Navigation
-          userName={user ? user.username : 'Login'}
+        <Navigation userName={user ? user.username : 'Guest'}
           className="!w-full"
           style={{ width: '100%' }}
           variant={variant}
@@ -201,4 +226,4 @@ function App({ signOut, user }) {
   );
 }
 
-export default App;
+export default withAuthenticator(App);
