@@ -14,7 +14,7 @@ const UserPage = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      navigate('/'); // Navigate back to the main page after logout
+      navigate('/');
     } catch (error) {
       setErrorMessage('Error signing out');
     }
