@@ -105,12 +105,22 @@ function App({ signOut, user }) {
       });
   };
 
+  // Check if user is authenticated before allowing certain actions
+  const checkAuthAndNavigate = async (path) => {
+    try {
+      await Auth.currentAuthenticatedUser();
+      navigate(path); // If authenticated, navigate to the path
+    } catch {
+      navigate('/user'); // If not authenticated, navigate to the login page
+    }
+  };
+
   return (
     <Router>
       <div className="nav-container">
         {/* Responsive Navigation Component */}
         <Navigation
-          userName={user.username || 'User'}
+          userName={user ? user.username : 'Login'}
           className="!w-full"
           style={{ width: '100%' }}
           variant={variant}
@@ -191,4 +201,4 @@ function App({ signOut, user }) {
   );
 }
 
-export default withAuthenticator(App);
+export default App;
