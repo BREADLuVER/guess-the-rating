@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { signOut, getCurrentUser, updatePassword } from 'aws-amplify/auth';
 import { useNavigate } from 'react-router-dom';
 import './UserPage.css';
@@ -8,7 +8,21 @@ const UserPage = () => {
   const [newPassword, setNewPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [currentUser, setCurrentUser] = useState(null); // Store the current user
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user); // Set the current user
+      } catch (error) {
+        setErrorMessage('Error fetching user');
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   // Handle the sign out
   const handleSignOut = async () => {
@@ -33,6 +47,23 @@ const UserPage = () => {
     }
   };
 
+  // Render Sign-In form if the user is "Guest"
+  if (currentUser && currentUser.username === 'Guest') {
+    return (
+      <div className="user-page">
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <h2>Welcome Guest!</h2>
+          <p>Please sign in to access your account.</p>
+          {/* Sign-in form placeholder */}
+          <button onClick={() => navigate('/signin')} style={{ padding: '10px 20px', marginTop: '10px' }}>
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Change Password page if the user is not "Guest"
   return (
     <div className="user-page">
       <div style={{ padding: '20px', textAlign: 'center' }}>

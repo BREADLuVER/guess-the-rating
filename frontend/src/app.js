@@ -131,16 +131,6 @@ function App() {
       });
   };
 
-  // Check if user is authenticated before allowing certain actions
-  const checkAuthAndNavigate = async (path) => {
-    try {
-      await Auth.currentAuthenticatedUser();
-      navigate(path); // If authenticated, navigate to the path
-    } catch {
-      navigate('/user'); // If not authenticated, navigate to the login page
-    }
-  };
-
   return (
     <Router>
       <div className="nav-container">
