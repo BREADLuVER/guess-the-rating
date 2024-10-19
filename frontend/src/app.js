@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { Amplify } from 'aws-amplify';
-import { withAuthenticator } from '@aws-amplify/ui-react';
-import { getCurrentUser } from 'aws-amplify/auth';
+import { getCurrentUser, signOut } from 'aws-amplify/auth';
 import axios from 'axios';
 import '@aws-amplify/ui-react/styles.css';
 import config from './amplifyconfiguration.json';
@@ -21,6 +20,7 @@ import ChooseJournalist from './pages/ChooseJournalist';
 import ChooseJournalist2 from './pages/ChooseJournalist2';
 import JournalistRatingPage from './pages/JournalistRatingPage';
 import ComingSoon from './pages/ComingSoon';
+import SignIn from './pages/SignIn';  // Add a custom sign-in page
 
 function useWindowSize() {
   const [windowSize, setWindowSize] = useState({
@@ -55,12 +55,12 @@ function App() {
     variant = 'Desktop';
   }
 
-  // State to hold the list of games
+  // State to hold the list of games and user info
   const [games, setGames] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredGames, setFilteredGames] = useState([]);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
   console.log('user:', user);
 
   // Fetch games from the backend and sort by popularity
@@ -75,32 +75,42 @@ function App() {
     }
   };
 
-  // Fetch games on component mount
+  // Fetch games on component mount and get current user info
   useEffect(() => {
-    async function currentAuthenticatedUser() {
+    async function fetchAuthenticatedUser() {
       try {
-        const { username, userId, signInDetails } = await getCurrentUser();
-        console.log(`The username: ${username}`);
-        console.log(`The userId: ${userId}`);
-        console.log(`The signInDetails: ${signInDetails}`);
-        
-        // Update the user state with the authenticated user data
-        setUser({ username, userId, signInDetails });
-        
+        const user = await getCurrentUser();
+        if (user) {
+          setUser(user);  // Set user state if logged in
+        } else {
+          setUser(null);  // Clear user state if not logged in
+        }
       } catch (err) {
         console.log(err);
+        setUser(null);
       } finally {
-        setLoading(false);  // Set loading to false after the user is fetched
+        setLoading(false);  // Set loading to false once done
       }
     }
-    
-    currentAuthenticatedUser();
+
+    fetchAuthenticatedUser();
     fetchGames();
   }, []);
 
   if (loading) {
     return <div>Loading...</div>;
   }
+
+  // Handle sign out
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setUser(null);  // Clear user state on sign out
+      navigate('/');  // Redirect to home page after sign out
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   // Function to handle the search input change
   const handleSearchChange = (e) => {
@@ -133,47 +143,49 @@ function App() {
 
   return (
     <Router>
-      <div className="nav-container">
-        {/* Responsive Navigation Component */}
-        <Navigation userName={user ? user.username : 'Guest'}
-          className="!w-full"
-          style={{ width: '100%' }}
-          variant={variant}
-        />
-  
-        <Routes>
-          {/* Main page route */}
-          <Route
-            path="/"
-            element={
-              <>
-                <Hero
-                  className="!w-full"
-                  style={{ width: '100%' }}
-                  variant={variant}
-                />
-                <UserSurvey
-                  className="!w-full"
-                  style={{ width: '100%' }}
-                  variant={variant}
-                />
-  
-                {/* Add a section to display games */}
-                <div className="game-list">
-                  <h2>Anticipated Future Games</h2>
-                  {/* Search Bar */}
-                  <div className="search-bar">
-                    <input
-                      type="text"
-                      placeholder="Search for a game..."
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                    />
-                    <button className="clear-search" onClick={clearSearch}>
-                      Clear Search
-                    </button>
-                  </div>
-                  
+    <div className="nav-container">
+      {/* Responsive Navigation Component */}
+      <Navigation 
+        userName={user ? user.username : 'Guest'}
+        onSignOut={handleSignOut}  // Pass the sign-out function to the Navigation
+        className="!w-full"
+        style={{ width: '100%' }}
+        variant={variant}
+      />
+
+      <Routes>
+        {/* Main page route */}
+        <Route
+          path="/"
+          element={
+            <>
+              <Hero
+                className="!w-full"
+                style={{ width: '100%' }}
+                variant={variant}
+              />
+              <UserSurvey
+                className="!w-full"
+                style={{ width: '100%' }}
+                variant={variant}
+              />
+
+              {/* Add a section to display games */}
+              <div className="game-list">
+                <h2>Anticipated Future Games</h2>
+                {/* Search Bar */}
+                <div className="search-bar">
+                  <input
+                    type="text"
+                    placeholder="Search for a game..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                  />
+                  <button className="clear-search" onClick={clearSearch}>
+                    Clear Search
+                  </button>
+                </div>
+                
                 {/* Conditionally render the game list or no games found message */}
                 {filteredGames.length > 0 ? (
                   <ul>
@@ -200,20 +212,21 @@ function App() {
                 ) : (
                   searchQuery && <p style={{ fontSize: '1.2em' }}>No games found</p>
                 )}
-                </div>
-              </>
-            }
-          />
-          <Route path="/chooseJournalist2/:gameTitle" element={<ChooseJournalist2 />} />
-          <Route path="/chooseJournalist/:gameTitle" element={<ChooseJournalist />} />
-          <Route path="/comingSoon" element={<ComingSoon />} />
-          <Route path="/user" element={<UserPage />} />
-          <Route path="/userForm" element={<UserForm />} />
-          <Route path="/rate/:journalist/:gameTitle" element={<JournalistRatingPage />} />
-        </Routes>
-      </div>
+              </div>
+            </>
+          }
+        />
+        <Route path="/chooseJournalist2/:gameTitle" element={<ChooseJournalist2 />} />
+        <Route path="/chooseJournalist/:gameTitle" element={<ChooseJournalist />} />
+        <Route path="/comingSoon" element={<ComingSoon />} />
+        <Route path="/user" element={user ? <UserPage /> : <SignIn />} />  {/* Show sign-in page if not authenticated */}
+        <Route path="/userForm" element={<UserForm />} />
+        <Route path="/rate/:journalist/:gameTitle" element={<JournalistRatingPage />} />
+        <Route path="/signin" element={<SignIn />} />  {/* Add a custom sign-in route */}
+      </Routes>
+    </div>
     </Router>
   );
 }
 
-export default withAuthenticator(App);
+export default App;
