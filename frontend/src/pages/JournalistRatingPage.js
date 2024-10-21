@@ -1,9 +1,8 @@
-// src/components/JournalistRatingPage.js
 import React, { useState, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { useParams } from 'react-router-dom';
 import './JournalistRatingPage.css';
-import { fetchAuthSession, getCurrentUser } from 'aws-amplify/auth';
+import { getCurrentUser } from 'aws-amplify/auth'; // Amplify v6 getCurrentUser
 import axios from 'axios';
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
@@ -25,6 +24,7 @@ const JournalistRatingPage = () => {
         fetchRatingData(username); // Fetch data for the user
       } catch (error) {
         console.error('Error fetching user session:', error);
+        setUser(null); // If no user is signed in
       }
     };
 
@@ -32,7 +32,11 @@ const JournalistRatingPage = () => {
   }, []);
 
   const submitRating = async (rating) => {
-    const csrfToken = getCSRFToken();
+    if (!user) {
+      setMessage("You must be signed in to rate a game.");
+      return;
+    }
+
     try {
       const response = await axios.post(
         'http://127.0.0.1:8000/api/predictions/',
@@ -45,9 +49,7 @@ const JournalistRatingPage = () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken,
-          },
-          withCredentials: true,
+          }
         }
       );
 
@@ -68,27 +70,22 @@ const JournalistRatingPage = () => {
   const handleRatingChange = (e) => {
     const rating = parseInt(e.target.value, 10);
     setSelectedRating(rating);
-    submitRating(rating);
+    submitRating(rating); // Submit rating when the user selects it
   };
 
-  const fetchRatingData = async () => {
+  const fetchRatingData = async (username) => {
     try {
-      // Fetch rating data for all users and the current user's rating
       const response = await axios.get(
         `http://127.0.0.1:8000/api/predictions/${gameTitle}/${journalist}/`,
-        { withCredentials: true }
       );
-      
-      const fetchedData = response.data;
-    
-      // console.log('Fetched data:', fetchedData);
 
+      const fetchedData = response.data;
       const ratingsArray = fetchedData.ratings || [];
       const mappedData = mapDataToGraph(ratingsArray);
       setRatingData(mappedData);
+
+      // Check if the user has already submitted a rating
       const userRatingFromResponse = fetchedData.userRating;
-      // console.log('User Rating:', userRatingFromResponse);
-  
       if (userRatingFromResponse !== null) {
         setUserSubmittedRating(true);
         setUserRating(userRatingFromResponse);
@@ -97,40 +94,20 @@ const JournalistRatingPage = () => {
         setUserRating(null);
       }
     } catch (error) {
-      console.error('Error fetching ratings data:', error.response || error);
+      console.error('Error fetching ratings data:', error);
     }
   };
 
-
-  // Helper function to map the data to the correct format for the bar graph
   const mapDataToGraph = (data) => {
-    if (!Array.isArray(data)) {
-      console.error('Invalid data format for mapping to graph');
-      return Array(10).fill(0); // Return empty array in case of invalid data
-    }
-  
     const ratingsArray = Array(10).fill(0);
-  
-    // Iterate over the fetched data and populate the ratings array
     data.forEach(item => {
       const ratingIndex = item.predicted_rating - 1; // Convert to zero-based index
-      if (ratingIndex >= 0 && ratingIndex < 10) { // Ensure rating index is within bounds
-        ratingsArray[ratingIndex] = item.count;
+      if (ratingIndex >= 0 && ratingIndex < 10) {
+        ratingsArray[ratingIndex] += item.count;
       }
     });
-  
     return ratingsArray;
   };
-  
-
-  const getCSRFToken = () => {
-    const cookieValue = document.cookie
-      .split('; ')
-      .find((row) => row.startsWith('csrftoken='))
-      ?.split('=')[1];
-    return cookieValue;
-  };
-
 
   const graphData = ratingData && {
     labels: [...Array(10).keys()].map(i => (i + 1).toString()),
@@ -156,42 +133,38 @@ const JournalistRatingPage = () => {
             />
           </div>
         )}
-        {userSubmittedRating? (
-          <div className="resubmit-section">
-            <h2>You have already submitted a rating of {userRating}/10. Would you like to update your rating?</h2>
-            <select
-              className="rating-dropdown"
-              value={selectedRating || userRating || ''}
-              onChange={handleRatingChange}
-            >
-              <option value="" disabled>
-                Select a rating
-              </option>
-              {[...Array(10).keys()].map((index) => (
-                <option key={index + 1} value={index + 1}>
-                  {index + 1}
-                </option>
-              ))}
-            </select>
-          </div>
+        {user ? (
+          userSubmittedRating ? (
+            <div className="resubmit-section">
+              <h2>You have already submitted a rating of {userRating}/10. Would you like to update your rating?</h2>
+              <select
+                className="rating-dropdown"
+                value={selectedRating || userRating || ''}
+                onChange={handleRatingChange}
+              >
+                <option value="" disabled>Select a rating</option>
+                {[...Array(10).keys()].map((index) => (
+                  <option key={index + 1} value={index + 1}>{index + 1}</option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div className="rating-select-container">
+              <h2>Select your rating for {journalist}'s review of {decodeURIComponent(gameTitle)}</h2>
+              <select
+                className="rating-dropdown"
+                value={selectedRating || ''}
+                onChange={handleRatingChange}
+              >
+                <option value="" disabled>Select a rating</option>
+                {[...Array(10).keys()].map((index) => (
+                  <option key={index + 1} value={index + 1}>{index + 1}</option>
+                ))}
+              </select>
+            </div>
+          )
         ) : (
-          <div className="rating-select-container">
-            <h2>Select your rating for {journalist}'s review of {decodeURIComponent(gameTitle)}</h2>
-            <select
-              className="rating-dropdown"
-              value={selectedRating || ''}
-              onChange={handleRatingChange}
-            >
-              <option value="" disabled>
-                Select a rating
-              </option>
-              {[...Array(10).keys()].map((index) => (
-                <option key={index + 1} value={index + 1}>
-                  {index + 1}
-                </option>
-              ))}
-            </select>
-          </div>
+          <h2>Please sign in to submit your rating for {journalist} on {decodeURIComponent(gameTitle)}.</h2>
         )}
       </div>
     </div>
