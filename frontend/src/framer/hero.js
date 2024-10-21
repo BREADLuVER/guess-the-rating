@@ -798,6 +798,7 @@ var Component = /* @__PURE__ */ React3.forwardRef(function (props, ref,) {
                 },),
               },),
             },),
+            
             /* @__PURE__ */ _jsx3(ComponentViewportProvider, {
               children: /* @__PURE__ */ _jsx3(motion.div, {
                 className: 'framer-l01x53-container',
