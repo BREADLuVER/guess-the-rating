@@ -8,14 +8,14 @@ const UserPage = () => {
   const [newPassword, setNewPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [currentUser, setCurrentUser] = useState(null); // Store the current user
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const user = await getCurrentUser();
-        setCurrentUser(user); // Set the current user
+        setUser(user); // Set the current user
       } catch (error) {
         setErrorMessage('Error fetching user');
       }
@@ -24,13 +24,15 @@ const UserPage = () => {
     fetchUser();
   }, []);
 
-  // Handle the sign out
+  // Handle sign out
   const handleSignOut = async () => {
     try {
       await signOut();
+      setUser(null);
       navigate('/');
+      window.location.reload(); 
     } catch (error) {
-      setErrorMessage('Error signing out');
+      console.error('Error signing out:', error);
     }
   };
 
@@ -48,7 +50,7 @@ const UserPage = () => {
   };
 
   // Render Sign-In form if the user is "Guest"
-  if (currentUser && currentUser.username === 'Guest') {
+  if (user && user.username === 'Guest') {
     return (
       <div className="user-page">
         <div style={{ padding: '20px', textAlign: 'center' }}>
