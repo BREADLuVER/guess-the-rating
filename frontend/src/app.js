@@ -101,17 +101,6 @@ function App() {
     return <div>Loading...</div>;
   }
 
-  // Handle sign out
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      setUser(null);  // Clear user state on sign out
-      navigate('/');  // Redirect to home page after sign out
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
   // Function to handle the search input change
   const handleSearchChange = (e) => {
     const query = e.target.value.toLowerCase();
@@ -147,7 +136,7 @@ function App() {
       {/* Responsive Navigation Component */}
       <Navigation 
         userName={user ? user.username : 'Guest'}
-        onSignOut={handleSignOut}  // Pass the sign-out function to the Navigation
+        //onSignOut={handleSignOut}
         className="!w-full"
         style={{ width: '100%' }}
         variant={variant}
