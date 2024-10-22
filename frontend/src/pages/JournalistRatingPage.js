@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { useParams } from 'react-router-dom';
 import './JournalistRatingPage.css';
-import { getCurrentUser } from 'aws-amplify/auth'; // Amplify v6 getCurrentUser
+import { getCurrentUser } from 'aws-amplify/auth';
 import axios from 'axios';
 import { Chart, registerables } from 'chart.js';
-import RatingBadge from './RatingBadge'; // Import the RatingBadge component
+import RatingBadge from './RatingBadge';
 Chart.register(...registerables);
 
 const JournalistRatingPage = () => {
@@ -25,7 +25,7 @@ const JournalistRatingPage = () => {
         fetchRatingData(username); // Fetch data for the user
       } catch (error) {
         console.error('Error fetching user session:', error);
-        setUser(null); // If no user is signed in
+        setUser(null);
       }
     };
 
@@ -71,7 +71,7 @@ const JournalistRatingPage = () => {
 
   const handleRatingChange = (rating) => {
     setSelectedRating(rating);
-    submitRating(rating); // Submit rating when the user selects it
+    submitRating(rating);
   };
 
   const fetchRatingData = async (username) => {
@@ -103,7 +103,7 @@ const JournalistRatingPage = () => {
   const mapDataToGraph = (data) => {
     const ratingsArray = Array(10).fill(0);
     data.forEach(item => {
-      const ratingIndex = item.predicted_rating - 1; // Convert to zero-based index
+      const ratingIndex = item.predicted_rating - 1;
       if (ratingIndex >= 0 && ratingIndex < 10) {
         ratingsArray[ratingIndex] += item.count;
       }
