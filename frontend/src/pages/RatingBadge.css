@@ -23,13 +23,44 @@
   
   .rating-input {
     margin-top: 20px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 40px; /* Align the input and button height */
   }
   
   .rating-input input {
     font-size: 0.9rem;
     padding: 5px;
-    width: 180px;
+    width: 140px;
     text-align: center;
     padding-left: 20px;
+    height: 100%; /* Match the button's height */
+    border: 1px solid #ccc;
+    border-radius: 5px 0 0 5px; /* Rounded corners on the left */
+    outline: none;
+  }
+  
+  .submit-button {
+    background-color: #e50914;
+    color: white;
+    border: none;
+    border-radius: 0 5px 5px 0; /* Rounded corners on the right */
+    height: 100%; /* Match the input's height */
+    padding: 0 15px; /* Adjust width to make it compact */
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease;
+  }
+  
+  .submit-button:hover {
+    background-color: #ff4040;
+  }
+  
+  .submit-button:focus {
+    outline: none;
   }
   
