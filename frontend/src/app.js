@@ -20,7 +20,8 @@ import ChooseJournalist from './pages/ChooseJournalist';
 import ChooseJournalist2 from './pages/ChooseJournalist2';
 import JournalistRatingPage from './pages/JournalistRatingPage';
 import ComingSoon from './pages/ComingSoon';
-import SignIn from './pages/SignIn';  // Add a custom sign-in page
+import SignIn from './pages/SignIn';
+import RatingBadge from './pages/RatingBadge';
 
 function useWindowSize() {
   const [windowSize, setWindowSize] = useState({
@@ -196,11 +197,13 @@ function App() {
                             <ChooseJournalist gameTitle={game.title} />
                           </div>
                         </li>
+                        
                       ))}
                   </ul>
                 ) : (
                   searchQuery && <p style={{ fontSize: '1.2em' }}>No games found</p>
                 )}
+                <li><RatingBadge /></li>
               </div>
             </>
           }
