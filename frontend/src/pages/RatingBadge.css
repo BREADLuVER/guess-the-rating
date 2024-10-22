@@ -1,0 +1,35 @@
+.rating-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+  }
+  
+  .hexagon {
+    width: 150px;
+    height: 160px;
+    background-color: #e50914;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  }
+  
+  .rating-value {
+    font-size: 3rem;
+    color: white;
+  }
+  
+  .rating-input {
+    margin-top: 20px;
+  }
+  
+  .rating-input input {
+    font-size: 0.9rem;
+    padding: 5px;
+    width: 180px;
+    text-align: center;
+    padding-left: 20px;
+  }
+  

@@ -5,6 +5,7 @@ import './JournalistRatingPage.css';
 import { getCurrentUser } from 'aws-amplify/auth'; // Amplify v6 getCurrentUser
 import axios from 'axios';
 import { Chart, registerables } from 'chart.js';
+import RatingBadge from './RatingBadge'; // Import the RatingBadge component
 Chart.register(...registerables);
 
 const JournalistRatingPage = () => {
@@ -49,7 +50,8 @@ const JournalistRatingPage = () => {
         {
           headers: {
             'Content-Type': 'application/json',
-          }
+          },
+          withCredentials: true,
         }
       );
 
@@ -67,8 +69,7 @@ const JournalistRatingPage = () => {
     }
   };
 
-  const handleRatingChange = (e) => {
-    const rating = parseInt(e.target.value, 10);
+  const handleRatingChange = (rating) => {
     setSelectedRating(rating);
     submitRating(rating); // Submit rating when the user selects it
   };
@@ -77,6 +78,7 @@ const JournalistRatingPage = () => {
     try {
       const response = await axios.get(
         `http://127.0.0.1:8000/api/predictions/${gameTitle}/${journalist}/`,
+        { withCredentials: true }
       );
 
       const fetchedData = response.data;
@@ -137,30 +139,18 @@ const JournalistRatingPage = () => {
           userSubmittedRating ? (
             <div className="resubmit-section">
               <h2>You have already submitted a rating of {userRating}/10. Would you like to update your rating?</h2>
-              <select
-                className="rating-dropdown"
-                value={selectedRating || userRating || ''}
-                onChange={handleRatingChange}
-              >
-                <option value="" disabled>Select a rating</option>
-                {[...Array(10).keys()].map((index) => (
-                  <option key={index + 1} value={index + 1}>{index + 1}</option>
-                ))}
-              </select>
+              <RatingBadge
+                initialRating={userRating || selectedRating}
+                onRatingChange={handleRatingChange}
+              />
             </div>
           ) : (
             <div className="rating-select-container">
               <h2>Select your rating for {journalist}'s review of {decodeURIComponent(gameTitle)}</h2>
-              <select
-                className="rating-dropdown"
-                value={selectedRating || ''}
-                onChange={handleRatingChange}
-              >
-                <option value="" disabled>Select a rating</option>
-                {[...Array(10).keys()].map((index) => (
-                  <option key={index + 1} value={index + 1}>{index + 1}</option>
-                ))}
-              </select>
+              <RatingBadge
+                initialRating={selectedRating}
+                onRatingChange={handleRatingChange}
+              />
             </div>
           )
         ) : (
