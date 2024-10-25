@@ -7,7 +7,7 @@
     "aws-amplify": "^6.6.0",
     "axios": "^0.21.4",
     "bootstrap": "^5.0.0",
-    "chart.js": "^4.4.4",
+    "chart.js": "^4.4.5",
     "framer-motion": "^11.5.4",
     "node-fetch": "^3.3.2",
     "react": "^18.2.0",

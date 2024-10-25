@@ -203,7 +203,6 @@ function App() {
                 ) : (
                   searchQuery && <p style={{ fontSize: '1.2em' }}>No games found</p>
                 )}
-                <li><RatingBadge /></li>
               </div>
             </>
           }
