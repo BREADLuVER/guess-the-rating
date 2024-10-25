@@ -1,4 +1,20 @@
 {
+  "api": {
+    "api80cec02f": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "gtrac712c6f"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "API Gateway"
+    }
+  },
   "auth": {
     "gtr8cff66f1": {
       "customAuth": false,
@@ -27,6 +43,11 @@
   },
   "function": {
     "gtr299ed3a6DefineAuthChallenge": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "gtrac712c6f": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"

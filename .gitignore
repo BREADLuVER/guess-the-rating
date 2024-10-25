@@ -130,6 +130,7 @@ ENV/
 env.bak/
 venv.bak/
 node_modules/
+aws-exports.js
 
 # Spyder project settings
 .spyderproject

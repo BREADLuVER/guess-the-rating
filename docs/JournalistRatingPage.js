@@ -22,8 +22,7 @@ const JournalistRatingPage = () => {
       try {
         const { username } = await getCurrentUser();
         setUser(username);
-        console.log('UserRating user:', username);
-        fetchRatingData(username); // Fetch data for the user
+        fetchRatingData(); // Fetch data for the user
       } catch (error) {
         console.error('Error fetching user session:', error);
         setUser(null);
@@ -76,24 +75,13 @@ const JournalistRatingPage = () => {
     submitRating(rating);
   };
 
-  const fetchRatingData = async (username) => {
-    console.log('UserRating user:', username);
-    if (!username) {
-      console.error("Username or User ID is missing.");
-      return;
-    }
-  
+  const fetchRatingData = async () => {
     try {
       const response = await axios.get(
-        `http://127.0.0.1:8000/api/predictions/${gameTitle}/${journalist}/?username=${username}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true,
-        }
+        `http://127.0.0.1:8000/api/predictions/${gameTitle}/${journalist}/`, // Ensure this is the correct endpoint for get_user_ratings
+        { withCredentials: true }
       );
-
+  
       const fetchedData = response.data;
       console.log('Fetched Data:', fetchedData); // Log the response
   
@@ -103,12 +91,14 @@ const JournalistRatingPage = () => {
       setRatingData(mappedData);
   
       // Check if the user has already submitted a rating
-      const userSubmitted = fetchedData.userRating;
+      const userSubmitted = fetchedData.user_submitted;
+      const userRatingFromResponse = fetchedData.user_rating;
       console.log('User Submitted:', userSubmitted);
+      console.log('User Rating from Response:', userRatingFromResponse);
   
       // Update the state based on the user's submission status
       setUserSubmittedRating(userSubmitted);
-      setUserRating(userSubmitted || null);
+      setUserRating(userRatingFromResponse || null);
       
     } catch (error) {
       console.error('Error fetching ratings data:', error);

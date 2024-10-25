@@ -81,8 +81,10 @@ def game_list(request):
 
 def get_user_ratings(request, game_title, journalist):
     user = request.user
+
+    # Ensure we are using the username or id to match predictions
     predictions = Prediction.objects.filter(game__title=game_title, journalist=journalist)
-    user_prediction = predictions.filter(user=user).first()
+    user_prediction = predictions.filter(user__username=user.username).first()  # Match by username
 
     ratings_data = predictions.values('predicted_rating').annotate(count=models.Count('predicted_rating'))
 
@@ -130,20 +132,43 @@ class CreatePredictionView(generics.CreateAPIView):
 
 # Fetch all predictions for the given game and journalist
 class AnalystPredictionsView(APIView):
-    permission_classes = [IsAuthenticated]
-
     def get(self, request, game_title, journalist_name):
-        user = request.user
-        predictions = Prediction.objects.filter(game=game_title, journalist=journalist_name)
-        ratings_count = predictions.values('predicted_rating').annotate(count=Count('predicted_rating'))
-        user_prediction = predictions.filter(user=user).first()
+        username = request.GET.get('username')
 
-        response_data = {
-            "ratings": list(ratings_count),
-            "userRating": user_prediction.predicted_rating if user_prediction else None
-        }
-        return Response(response_data)
+        # Check if username is provided
+        if not username:
+            return JsonResponse({"error": "Username query parameter is required"}, status=400)
 
+        # Log for debugging
+        print(f"Received request for game: {game_title}, journalist: {journalist_name}, username: {username}")
+
+        try:
+            # Query all predictions for this game and journalist
+            predictions = Prediction.objects.filter(game=game_title, journalist=journalist_name)
+            print(f"Predictions for game and journalist: {predictions}")
+
+            # Filter for the specific user's prediction by username
+            user_prediction = predictions.filter(user=username).first()
+            print(f"User Prediction for {username}: {user_prediction}")
+
+            # Get ratings count for the graph
+            ratings_count = predictions.values('predicted_rating').annotate(count=Count('predicted_rating'))
+            print(f"Ratings Count Data: {list(ratings_count)}")
+
+            # Prepare response data
+            response_data = {
+                "ratings": list(ratings_count),
+                "userRating": user_prediction.predicted_rating if user_prediction else None
+            }
+
+            # Log final response data
+            print(f"Response Data: {response_data}")
+            return JsonResponse(response_data)
+
+        except Exception as e:
+            print(f"Error occurred: {e}")
+            return JsonResponse({"error": "An error occurred processing your request"}, status=500)
+    
 
 @csrf_exempt
 def increment_click(request, game_id):

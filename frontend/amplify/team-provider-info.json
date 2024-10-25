@@ -19,7 +19,8 @@
         "gtr299ed3a6DefineAuthChallenge": {
           "deploymentBucketName": "amplify-gtr-dev-b8efd-deployment",
           "s3Key": "amplify-builds/gtr299ed3a6DefineAuthChallenge-694e5a37353850527453-build.zip"
-        }
+        },
+        "gtrac712c6f": {}
       }
     }
   }
