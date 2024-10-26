@@ -30,7 +30,8 @@ services:
     networks:
       - guess-the-rating-network
     environment:
-      - ALLOWED_HOSTS=localhost 127.0.0.1 backend
+      - DJANGO_SETTINGS_MODULE=guess_the_rating.settings.prod
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend  # Comma-separated for multiple hosts
     ports:
       - "8000:8000"
 
@@ -39,7 +40,7 @@ services:
     volumes:
       - ./frontend:/app
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - WATCHPACK_POLLING=true
       - REACT_APP_API_URL=http://backend:8000
       - NODE_OPTIONS=--max-old-space-size=8192
@@ -54,11 +55,9 @@ services:
     ports:
       - "3000:3000"
 
-
 networks:
   guess-the-rating-network:
     driver: bridge
 
 volumes:
   postgres_data:
-
