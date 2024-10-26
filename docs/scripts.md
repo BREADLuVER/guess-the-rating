@@ -14,9 +14,13 @@ python manage.py migrate
 
 #create new postgres on docker, connect with Pgadmin
 
-docker run --name postgres-rating -e POSTGRES_PASSWORD=123 -p 5050:5432 -d postgres
+C:\Users\bread>docker run --name guess_the_rating_db -e POSTGRES_PASSWORD=123 -p 5050:5432 -d postgres
+722b4971a455beab6236090fe9b90c2ec6400db2c723846c71259f5ef118e3ff
 
-psql -h localhost -p 5050 -U postgres -W
+docker exec -it guess_the_rating_db psql -U postgres
+
+CREATE DATABASE guess_the_rating_db;
+
 
 #amplify
 
@@ -44,7 +48,7 @@ nvm -v
 #unframer
 https://github.com/remorses/unframer
 
-cd src 
+cd src
 
 npx unframer
 

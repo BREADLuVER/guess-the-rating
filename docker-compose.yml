@@ -38,7 +38,6 @@ services:
     build: ./frontend
     volumes:
       - ./frontend:/app
-      - /app/src/framer
     environment:
       - NODE_ENV=development
       - WATCHPACK_POLLING=true
