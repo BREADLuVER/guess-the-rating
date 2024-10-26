@@ -2,6 +2,8 @@
 
 import axios from 'axios';
 
+axios.defaults.withCredentials = true;
+
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const fetchGames = () => axios.get(`${API_URL}/games/`);

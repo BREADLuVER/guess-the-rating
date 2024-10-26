@@ -4,7 +4,7 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from .models import Game, Prediction, Comment, ScrapedGame, GameClick
 from .serializers import GameSerializer, PredictionSerializer, CommentSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from django.http import JsonResponse
@@ -99,12 +99,14 @@ def get_user_ratings(request, game_title, journalist):
 
 # List all games
 class GameListView(generics.ListAPIView):
+    permission_classes = [AllowAny]
     queryset = Game.objects.all()
     serializer_class = GameSerializer
 
 
 # Get details for a specific game
 class GameDetailView(generics.RetrieveAPIView):
+    permission_classes = [AllowAny]
     queryset = Game.objects.all()
     serializer_class = GameSerializer
 

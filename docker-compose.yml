@@ -11,6 +11,10 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     networks:
       - guess-the-rating-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      retries: 5
 
   backend:
     build: ./backend
@@ -31,18 +35,20 @@ services:
       - guess-the-rating-network
     environment:
       - DJANGO_SETTINGS_MODULE=guess_the_rating.settings.prod
-      - ALLOWED_HOSTS=localhost,127.0.0.1,backend  # Comma-separated for multiple hosts
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
     ports:
       - "8000:8000"
 
   frontend:
     build: ./frontend
+    command: npx serve -s build
     volumes:
       - ./frontend:/app
     environment:
       - NODE_ENV=production
+      - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
-      - REACT_APP_API_URL=http://backend:8000
+      - REACT_APP_BACKEND_URL=http://backend:8000
       - NODE_OPTIONS=--max-old-space-size=8192
     deploy:
       resources:
@@ -58,6 +64,7 @@ services:
 networks:
   guess-the-rating-network:
     driver: bridge
+    name: guess-the-rating-network
 
 volumes:
   postgres_data:

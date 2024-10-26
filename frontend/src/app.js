@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+  import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { Amplify } from 'aws-amplify';
 import { getCurrentUser, signOut } from 'aws-amplify/auth';
@@ -21,7 +21,6 @@ import ChooseJournalist2 from './pages/ChooseJournalist2';
 import JournalistRatingPage from './pages/JournalistRatingPage';
 import ComingSoon from './pages/ComingSoon';
 import SignIn from './pages/SignIn';
-import RatingBadge from './pages/RatingBadge';
 
 function useWindowSize() {
   const [windowSize, setWindowSize] = useState({
@@ -62,12 +61,13 @@ function App() {
   const [filteredGames, setFilteredGames] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const API_URL = process.env.REACT_APP_BACKEND_URL;
   console.log('user:', user);
 
   // Fetch games from the backend and sort by popularity
   const fetchGames = async () => {
     try {
-      const response = await axios.get('/api/games/');
+      const response = await axios.get(`${API_URL}/api/games/`);
       const sortedGames = response.data.sort((a, b) => b.clickCount - a.clickCount);  // Sort by clickCount
       setGames(sortedGames);  // Store the sorted games in state
       setFilteredGames(sortedGames); // Set the filteredGames initially to sorted games
@@ -121,7 +121,7 @@ function App() {
 
   // Function to handle game clicks and increment the click count
   const handleGameClick = (gameId) => {
-    axios.post(`/increment-click/${gameId}/`)
+    axios.post(`${API_URL}/increment-click/${gameId}/`)
       .then(response => {
         console.log("Click recorded successfully", response.data);
         fetchGames();  // Re-fetch the games to update the click count and re-sort the list

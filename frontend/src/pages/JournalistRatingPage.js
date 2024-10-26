@@ -8,6 +8,7 @@ import { Chart, registerables } from 'chart.js';
 import RatingBadge from './RatingBadge';
 Chart.register(...registerables);
 
+
 const JournalistRatingPage = () => {
   const [user, setUser] = useState(null);
   const { journalist, gameTitle } = useParams();
@@ -33,87 +34,89 @@ const JournalistRatingPage = () => {
     fetchUser();
   }, []);
 
-  const submitRating = async (rating) => {
-    if (!user) {
-      setMessage("You must be signed in to rate a game.");
-      return;
-    }
-  
-    try {
-      const response = await axios.post(
-        'http://127.0.0.1:8000/api/predictions/',
-        {
-          user,
-          game: gameTitle,
-          journalist,
-          predicted_rating: rating,
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
+
+
+const submitRating = async (rating) => {
+  if (!user) {
+    setMessage("You must be signed in to rate a game.");
+    return;
+  }
+
+  try {
+    const response = await axios.post(
+      `${API_URL}/api/predictions/`,
+      {
+        user,
+        game: gameTitle,
+        journalist,
+        predicted_rating: rating,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
         },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true,
-        }
-      );
-  
-      if (response.status === 201) {
-        setMessage(`You have predicted ${journalist} will rate ${gameTitle} a ${rating}/10!`);
-        setUserSubmittedRating(true); // Update submission status
-        setUserRating(rating); // Store user rating
-        await fetchRatingData(); // Ensure fetchRatingData is called
-      } else {
-        setMessage('Failed to submit rating.');
+        withCredentials: true,
       }
-    } catch (error) {
-      console.error('Error submitting rating:', error);
-      setMessage('An error occurred while submitting your rating.');
+    );
+
+    if (response.status === 201) {
+      setMessage(`You have predicted ${journalist} will rate ${gameTitle} a ${rating}/10!`);
+      setUserSubmittedRating(true);
+      setUserRating(rating);
+      await fetchRatingData();
+    } else {
+      setMessage('Failed to submit rating.');
     }
+  } catch (error) {
+    console.error('Error submitting rating:', error);
+    setMessage('An error occurred while submitting your rating.');
+  }
+};
+
+
+const fetchRatingData = async (username) => {
+  console.log('UserRating user:', username);
+  if (!username) {
+    console.error("Username or User ID is missing.");
+    return;
+  }
+
+  try {
+    const response = await axios.get(
+      `${API_URL}/api/predictions/${gameTitle}/${journalist}/?username=${username}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,
+      }
+    );
+
+    const fetchedData = response.data;
+    console.log('Fetched Data:', fetchedData);
+
+    const ratingsArray = fetchedData.ratings || [];
+    const mappedData = mapDataToGraph(ratingsArray);
+    setRatingData(mappedData);
+
+    const userSubmitted = fetchedData.userRating;
+    console.log('User Submitted:', userSubmitted);
+
+    setUserSubmittedRating(userSubmitted);
+    setUserRating(userSubmitted || null);
+  } catch (error) {
+    console.error('Error fetching ratings data:', error);
+  }
   };
-  
+
 
   const handleRatingChange = (rating) => {
     setSelectedRating(rating);
     submitRating(rating);
   };
 
-  const fetchRatingData = async (username) => {
-    console.log('UserRating user:', username);
-    if (!username) {
-      console.error("Username or User ID is missing.");
-      return;
-    }
-  
-    try {
-      const response = await axios.get(
-        `http://127.0.0.1:8000/api/predictions/${gameTitle}/${journalist}/?username=${username}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true,
-        }
-      );
-
-      const fetchedData = response.data;
-      console.log('Fetched Data:', fetchedData); // Log the response
-  
-      // Update the ratings for the graph
-      const ratingsArray = fetchedData.ratings || [];
-      const mappedData = mapDataToGraph(ratingsArray);
-      setRatingData(mappedData);
-  
-      // Check if the user has already submitted a rating
-      const userSubmitted = fetchedData.userRating;
-      console.log('User Submitted:', userSubmitted);
-  
-      // Update the state based on the user's submission status
-      setUserSubmittedRating(userSubmitted);
-      setUserRating(userSubmitted || null);
-      
-    } catch (error) {
-      console.error('Error fetching ratings data:', error);
-    }
-  };
   
   const mapDataToGraph = (data) => {
     const ratingsArray = Array(10).fill(0);
@@ -126,6 +129,7 @@ const JournalistRatingPage = () => {
     return ratingsArray;
   };
 
+
   const graphData = ratingData && {
     labels: [...Array(10).keys()].map(i => (i + 1).toString()),
     datasets: [
@@ -137,6 +141,7 @@ const JournalistRatingPage = () => {
       },
     ],
   };
+
 
   return (
     <div className="rating-page-container">
