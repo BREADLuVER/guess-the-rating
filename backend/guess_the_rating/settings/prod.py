@@ -1,7 +1,7 @@
 # settings/prod.py
 from .base import *
 
-DEBUG = True
+DEBUG = False
 
 DATABASES['default']['HOST'] = 'db'
 DATABASES['default']['PORT'] = '5432'
