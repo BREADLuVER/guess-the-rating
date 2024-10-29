@@ -47,12 +47,12 @@ URL = "https://www.metacritic.com/news/major-new-and-upcoming-video-games-ps5-xb
 
 def setup_driver():
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Run in headless mode for performance
+    #chrome_options.add_argument("--headless")  # Ensure GUI is off
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    # Specify the path to the ChromeDriver
-    service = Service("C:\\Users\\bread\\.wdm\\drivers\\chromedriver\\win64\\128.0.6613.137\\chromedriver-win32\\chromedriver.exe")
+    # Important Specify the path to the ChromeDriver
+    service = Service("C:\\Users\\bread\\Downloads\\chromedriver-win64\\chromedriver-win64\\chromedriver.exe")
 
     driver = webdriver.Chrome(service=service, options=chrome_options)
     return driver
@@ -63,15 +63,17 @@ def is_valid_title(title):
     return title not in EXCLUDED_TITLES
 
 def fetch_game_data():
+    print('Fetching game data...')
     try:
+        print('Setting up driver...')
         driver = setup_driver()
+        print('Driver setup successful.')
         driver.get(URL)
-
         # Wait for the table containing the game data to load
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.TAG_NAME, "tr"))
         )
-
+        print('Page loaded successfully.')
         # Get the page source after JavaScript has executed
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
@@ -79,6 +81,7 @@ def fetch_game_data():
 
         # Locate all table rows in the HTML
         rows = soup.find_all('tr')
+        print(f"Number of rows found: {len(rows)}")
         
         for row in rows:
             # Find the game title

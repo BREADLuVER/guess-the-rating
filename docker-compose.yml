@@ -47,7 +47,7 @@ services:
     networks:
       - guess-the-rating-network
     environment:
-      - DJANGO_SETTINGS_MODULE=guess_the_rating.settings.prod
+      - DJANGO_SETTINGS_MODULE=guess_the_rating.settings.dev
       - ALLOWED_HOSTS=localhost,127.0.0.1,backend
     ports:
       - "8000:8000"
