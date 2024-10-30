@@ -1,19 +1,15 @@
 # frontend/Dockerfile
 
-FROM node:14
+# frontend/Dockerfile
+
+FROM node:16 as builder
 
 WORKDIR /app
+COPY . /app
+RUN npm install && npm run build
 
-COPY package.json /app/
-COPY package-lock.json /app/
-
-ENV NODE_OPTIONS=--max-old-space-size=8192
-
-RUN npm install
-
-COPY . /app/
-
-EXPOSE 3000
-
-CMD ["npm", "start"]
-
+# Final stage without unnecessary dependencies
+FROM nginx:alpine
+COPY --from=builder /app/build /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

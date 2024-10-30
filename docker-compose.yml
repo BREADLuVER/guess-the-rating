@@ -47,14 +47,13 @@ services:
     networks:
       - guess-the-rating-network
     environment:
-      - DJANGO_SETTINGS_MODULE=guess_the_rating.settings.dev
+      - DJANGO_SETTINGS_MODULE=guess_the_rating.settings.prod
       - ALLOWED_HOSTS=localhost,127.0.0.1,backend
     ports:
       - "8000:8000"
 
   frontend:
     build: ./frontend
-    command: npx serve -s build
     volumes:
       - ./frontend:/app
     environment:
@@ -72,7 +71,7 @@ services:
     networks:
       - guess-the-rating-network
     ports:
-      - "3000:3000"
+      - "3000:80"
 
 networks:
   guess-the-rating-network:

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchSuggestions } from '../services/api';
 import axios from 'axios';
 import './UserForm.css';
 
@@ -9,23 +10,6 @@ const UserForm = () => {
   const [title, setTitle] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const navigate = useNavigate();
-
-// Function to fetch game suggestions from the backend
-const fetchSuggestions = async (query) => {
-  try {
-    const response = await axios.get('/api/search-games/', {
-      params: { query },
-    });
-    const fetchedSuggestions = response.data;
-
-    // Filter only games with 'tbd' score
-    const filteredSuggestions = fetchedSuggestions.filter(game => game.score.toLowerCase() === 'tbd');
-    
-    setSuggestions(filteredSuggestions);
-  } catch (error) {
-    console.error('Error fetching game suggestions:', error);
-  }
-};
 
 // Handle the title input change
 const handleTitleChange = (e) => {

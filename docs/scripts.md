@@ -30,12 +30,12 @@ amplify push
 
 #docker
 
-docker-compose down
-docker build -t whats-the-rating-frontend ./frontend
+docker compose down
+docker build -t guess-the-rating-frontend ./frontend
 
-docker run -p 3000:3000 whats-the-rating-frontend
+docker run -p 3000:3000 guess-the-rating-frontend
 
-docker-compose up --build
+docker compose up --build
 
 #node
 
@@ -79,3 +79,15 @@ python manage.py scrape_games
 python manage.py createsuperuser
 python manage.py runserver
 http://127.0.0.1:8000/admin/
+
+
+#production
+
+docker compose exec backend python manage.py makemigrations
+
+docker compose exec backend python manage.py migrate
+
+docker compose exec backend python manage.py createsuperuser
+
+
+docker compose exec backend python manage.py scrape_games

@@ -15,3 +15,7 @@ export const submitPrediction = (data) => axios.post(`${API_URL}/predictions/`, 
 export const fetchComments = (gameId) => axios.get(`${API_URL}/games/${gameId}/comments/`);
 
 export const submitComment = (gameId, data) => axios.post(`${API_URL}/games/${gameId}/comments/new/`, data);
+
+export const fetchSuggestions = (query) => axios.get(`${API_URL}/search-games/`, {
+    params: { query },
+  });

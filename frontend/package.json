@@ -1,5 +1,5 @@
 {
-  "name": "whats-the-rating",
+  "name": "guess-the-rating",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
@@ -42,5 +42,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://backend:8000"
+  "proxy": "http://127.0.0.1:8000"
 }

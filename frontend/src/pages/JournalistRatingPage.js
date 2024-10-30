@@ -57,7 +57,6 @@ const submitRating = async (rating) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        withCredentials: true,
       }
     );
 

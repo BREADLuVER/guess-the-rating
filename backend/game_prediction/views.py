@@ -114,7 +114,7 @@ class GameDetailView(generics.RetrieveAPIView):
 # Allow users to submit their prediction
 class CreatePredictionView(generics.CreateAPIView):
     serializer_class = PredictionSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
         game_title = self.request.data.get('game', '')
