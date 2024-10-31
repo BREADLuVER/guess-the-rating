@@ -32,26 +32,27 @@ const handleTitleChange = (e) => {
 };
 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const newGame = {
-      title: title
-    };
+  // Check if the game title exists in suggestions
+  const gameExists = suggestions.some(suggestion => suggestion.title.toLowerCase() === title.toLowerCase());
+  if (!gameExists) {
+    alert("Game does not exist or already has a rating.");
+    return;
+  }
 
-    try {
-      // Send the new game data to the backend
-      await axios.post('/api/add-game/', newGame);
+  try {
+    // Send the new game data to the backend
+    await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/add-game/`, { title });
 
-      setTitle('');
-
-      navigate('/');
-
-      window.location.reload();
-    } catch (error) {
-      console.error('Error adding the game:', error);
-    }
-  };
+    setTitle('');
+    navigate('/');  // Navigate to the desired page after adding
+    window.location.reload();
+  } catch (error) {
+    console.error('Error adding the game:', error);
+  }
+};
 
   return (
     <div className="user-form">

@@ -17,6 +17,9 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+import logging
+
+logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
 def google_login(request):
@@ -50,15 +53,11 @@ def google_login(request):
 def search_games(request):
     query = request.GET.get('query', '')
     if query:
-        games = ScrapedGame.objects.filter(Q(title__icontains=query))[:5]
-
-        game_list = [
-            {
-                'title': game.title,
-                'score': game.score,
-            }
-            for game in games
-        ]
+        # Filter for games containing the query and with no rating ('tbd')
+        games = ScrapedGame.objects.filter(Q(title__icontains=query) & Q(score='tbd'))[:5]
+        game_list = [{'title': game.title, 'score': game.score} for game in games]
+        
+        logger.info(f"Games found for query '{query}': {game_list}")
         return JsonResponse(game_list, safe=False)
     
     return JsonResponse({"error": "No query provided."}, status=400)
@@ -66,6 +65,13 @@ def search_games(request):
 
 @api_view(['POST'])
 def add_game(request):
+    title = request.data.get('title', '').strip()
+    
+    # Check if the game exists in the database
+    if not ScrapedGame.objects.filter(title__iexact=title, score='tbd').exists():
+        return JsonResponse({'error': 'Game does not exist or already has a rating.'}, status=400)
+
+    # If the game is valid, proceed with adding
     serializer = GameSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
