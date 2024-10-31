@@ -26,7 +26,7 @@ const UserPage = () => {
           break;
         case 'tokenRefresh':
           console.log('Auth tokens have been refreshed.');
-          fetchToken(); // Refresh and store the new token
+          storeToken(); // Refresh and store the new token
           break;
         case 'tokenRefresh_failure':
           console.error('Failure while refreshing auth tokens.');
@@ -47,22 +47,26 @@ const UserPage = () => {
     try {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
-      fetchToken();
+      storeToken();
     } catch (error) {
       console.error('Error fetching user:', error);
       setErrorMessage('Error fetching user session.');
     }
   };
 
-  const fetchToken = async () => {
+  const storeToken = async () => {
     try {
-      const { accessToken } = (await fetchAuthSession()).tokens ?? {};
+      const session = await fetchAuthSession();
+      const accessToken = session.tokens?.accessToken; // Retrieve access token directly
+  
       if (accessToken) {
-        localStorage.setItem('authToken', accessToken);
-        console.log('User session token:', accessToken);
+        console.log("User session access token:", accessToken); // Verify that this is the token string
+        localStorage.setItem('authToken', accessToken); // Store only the token string
+      } else {
+        console.error("Access token not found in session.");
       }
     } catch (error) {
-      console.error('Error fetching token:', error);
+      console.error("Error fetching auth session:", error);
     }
   };
 

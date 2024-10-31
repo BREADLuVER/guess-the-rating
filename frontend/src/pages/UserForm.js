@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchSuggestions, addGame } from '../services/api';
 import { getCurrentUser } from 'aws-amplify/auth';
-import axios from 'axios';
 import './UserForm.css';
 
 const UserForm = () => {
@@ -24,30 +23,22 @@ const UserForm = () => {
         setUser(null);
       }
     };
-
     fetchUser();
   }, []);
   
-  // Handle the title input change
+  // Handle title input change
   const handleTitleChange = (e) => {
     const query = e.target.value;
     setTitle(query);
 
     if (query.length >= 2) {
-      console.log(`Fetching suggestions for query: ${query}`);
       fetchSuggestions(query)
-        .then(response => {
-          console.log("Suggestions received:", response.data);
-          setSuggestions(response.data);
-        })
-        .catch(error => {
-          console.error("Error fetching suggestions:", error);
-        });
+        .then(response => setSuggestions(response.data))
+        .catch(error => console.error("Error fetching suggestions:", error));
     } else {
-        setSuggestions([]);
+      setSuggestions([]);
     }
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,7 +58,7 @@ const UserForm = () => {
     }
 
     try {
-      await addGame(title, user); // Pass user as an additional parameter
+      await addGame(title, user); // Pass title and user
       setTitle('');
       navigate('/');
       window.location.reload();

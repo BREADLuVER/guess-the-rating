@@ -9,7 +9,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from django.http import JsonResponse
 from django.contrib.auth.models import User
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from django.db.models import Q, Count
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -63,25 +63,29 @@ def search_games(request):
     return JsonResponse({"error": "No query provided."}, status=400)
 
 
+
 @api_view(['POST'])
 def add_game(request):
-    title = request.data.get('title', '').strip()
-    username = request.data.get('username', '').strip()
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        print(f"Received Auth Header: {auth_header}")
+    else:
+        print("No Auth Header received")
 
-    # Check if a valid username is provided
+    title = request.data.get('title')
+    username = request.data.get('username')
+
     if not username:
-        return JsonResponse({'error': 'Username required for adding games.'}, status=400)
+        return Response({'error': 'Username required for adding games.'}, status=400)
 
-    # Check if the game exists in the database
     if not ScrapedGame.objects.filter(title__iexact=title, score='tbd').exists():
-        return JsonResponse({'error': 'Game does not exist or already has a rating.'}, status=400)
+        return Response({'error': 'Game does not exist or already has a rating.'}, status=400)
 
-    # Proceed to add the game
     serializer = GameSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return JsonResponse({'status': f'Game added successfully by {username}!'})
-    return JsonResponse(serializer.errors, status=400)
+        return Response({'status': f'Game added successfully by {username}!'})
+    return Response(serializer.errors, status=400)
 
 
 # Sort games by click_count in descending order

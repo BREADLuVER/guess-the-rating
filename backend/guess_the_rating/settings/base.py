@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',  # Google login
     'corsheaders',              # Handle CORS for frontend
     'game_prediction',
+    'rest_framework_simplejwt',  # JWT support
 ]
 
 # Site ID (required by Allauth)
@@ -66,7 +67,7 @@ SITE_ID = 1
 # Rest Framework configuration
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',  # enables simple command line authentication
