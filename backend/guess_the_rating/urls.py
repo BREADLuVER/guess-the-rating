@@ -18,14 +18,15 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-from game_prediction.views import google_login, add_game, CreatePredictionView, AnalystPredictionsView, increment_click
+from game_prediction import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('game_prediction.urls')),
-    path('api/auth/google/', google_login, name='google-login'),
-    path('api/add-game/', add_game, name='add-game'),
-    path('predictions/', CreatePredictionView.as_view(), name='create-prediction'),
-    path('api/predictions/<str:game_title>/<str:journalist_name>/', AnalystPredictionsView.as_view(), name='game-journalist-predictions'),
-    path('increment-click/<int:game_id>/', increment_click, name='increment_click'),
+    path('api/auth/google/', views.google_login, name='google-login'),
+    path('api/add-game/', views.add_game, name='add-game'),
+    path('predictions/', views.CreatePredictionView.as_view(), name='create-prediction'),
+    path('api/predictions/<str:game_title>/<str:journalist_name>/', views.AnalystPredictionsView.as_view(), name='game-journalist-predictions'),
+    path('increment-click/<int:game_id>/', views.increment_click, name='increment_click'),
+    path('search-games/', views.search_games, name='search_games'),
 ]   

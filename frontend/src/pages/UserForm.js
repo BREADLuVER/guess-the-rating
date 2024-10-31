@@ -16,11 +16,18 @@ const handleTitleChange = (e) => {
   const query = e.target.value;
   setTitle(query);
 
-  // Fetch suggestions if the query has 2 or more characters
   if (query.length >= 2) {
-    fetchSuggestions(query);
+    console.log(`Fetching suggestions for query: ${query}`);
+    fetchSuggestions(query)
+      .then(response => {
+        console.log("Suggestions received:", response.data);
+        setSuggestions(response.data);
+      })
+      .catch(error => {
+        console.error("Error fetching suggestions:", error);
+      });
   } else {
-    setSuggestions([]);
+      setSuggestions([]);
   }
 };
 
