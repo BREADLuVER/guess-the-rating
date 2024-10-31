@@ -2,7 +2,15 @@
 
 import axios from 'axios';
 
-axios.defaults.withCredentials = true;
+const getAuthToken = () => localStorage.getItem('authToken');
+
+axios.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -19,3 +27,5 @@ export const submitComment = (gameId, data) => axios.post(`${API_URL}/games/${ga
 export const fetchSuggestions = (query) => axios.get(`${API_URL}/search-games/`, {
     params: { query },
   });
+
+export const addGame = (title, username) => axios.post(`${API_URL}/api/add-game/`, { title, username });

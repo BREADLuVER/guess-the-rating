@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { signOut, getCurrentUser, updatePassword } from 'aws-amplify/auth';
 import { useNavigate } from 'react-router-dom';
+import { fetchAuthSession, getCurrentUser, signInWithRedirect, signOut, updatePassword } from 'aws-amplify/auth';
+import { Hub } from 'aws-amplify/utils';
 import './UserPage.css';
 
 const UserPage = () => {
@@ -12,52 +13,92 @@ const UserPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const user = await getCurrentUser();
-        setUser(user); // Set the current user
-      } catch (error) {
-        setErrorMessage('Error fetching user');
+    // Listen for auth events to update user state
+    const unsubscribe = Hub.listen('auth', ({ payload }) => {
+      switch (payload.event) {
+        case 'signInWithRedirect':
+          fetchUser();
+          break;
+        case 'signOut':
+          setUser(null);
+          localStorage.removeItem('authToken');
+          window.location.reload();
+          break;
+        case 'tokenRefresh':
+          console.log('Auth tokens have been refreshed.');
+          fetchToken(); // Refresh and store the new token
+          break;
+        case 'tokenRefresh_failure':
+          console.error('Failure while refreshing auth tokens.');
+          break;
+        default:
+          break;
       }
-    };
+    });
 
+    // Initial fetch of user data and token
     fetchUser();
+
+    // Cleanup Hub listener
+    return () => unsubscribe();
   }, []);
 
-  // Handle sign out
+  const fetchUser = async () => {
+    try {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+      fetchToken();
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      setErrorMessage('Error fetching user session.');
+    }
+  };
+
+  const fetchToken = async () => {
+    try {
+      const { accessToken } = (await fetchAuthSession()).tokens ?? {};
+      if (accessToken) {
+        localStorage.setItem('authToken', accessToken);
+        console.log('User session token:', accessToken);
+      }
+    } catch (error) {
+      console.error('Error fetching token:', error);
+    }
+  };
+
+  // Handle sign out and clear token from storage
   const handleSignOut = async () => {
     try {
       await signOut();
       setUser(null);
+      localStorage.removeItem('authToken');
       navigate('/');
-      window.location.reload(); 
+      window.location.reload();
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
 
-  // Handle the change password
+  // Handle password change
   const handleChangePassword = async () => {
     try {
-      const user = await getCurrentUser(); // Get the current authenticated user
-      await updatePassword(user, oldPassword, newPassword); // Update password using Amplify v6 API
+      await updatePassword(user, oldPassword, newPassword);
       setSuccessMessage('Password changed successfully!');
       setErrorMessage('');
     } catch (error) {
+      console.error('Error changing password:', error);
       setErrorMessage('Error changing password. Please ensure the old password is correct.');
       setSuccessMessage('');
     }
   };
 
-  // Render Sign-In form if the user is "Guest"
   if (user && user.username === 'Guest') {
     return (
       <div className="user-page">
         <div style={{ padding: '20px', textAlign: 'center' }}>
           <h2>Welcome Guest!</h2>
           <p>Please sign in to access your account.</p>
-          {/* Sign-in form placeholder */}
-          <button onClick={() => navigate('/signin')} style={{ padding: '10px 20px', marginTop: '10px' }}>
+          <button onClick={() => signInWithRedirect({ provider: 'Google' })} style={{ padding: '10px 20px', marginTop: '10px' }}>
             Sign In
           </button>
         </div>
@@ -65,7 +106,7 @@ const UserPage = () => {
     );
   }
 
-  // Render Change Password page if the user is not "Guest"
+  // Render Change Password and Sign Out options if user is signed in
   return (
     <div className="user-page">
       <div style={{ padding: '20px', textAlign: 'center' }}>

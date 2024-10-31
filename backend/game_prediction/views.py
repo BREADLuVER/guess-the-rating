@@ -66,16 +66,21 @@ def search_games(request):
 @api_view(['POST'])
 def add_game(request):
     title = request.data.get('title', '').strip()
-    
+    username = request.data.get('username', '').strip()
+
+    # Check if a valid username is provided
+    if not username:
+        return JsonResponse({'error': 'Username required for adding games.'}, status=400)
+
     # Check if the game exists in the database
     if not ScrapedGame.objects.filter(title__iexact=title, score='tbd').exists():
         return JsonResponse({'error': 'Game does not exist or already has a rating.'}, status=400)
 
-    # If the game is valid, proceed with adding
+    # Proceed to add the game
     serializer = GameSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return JsonResponse({'status': 'Game added successfully!'})
+        return JsonResponse({'status': f'Game added successfully by {username}!'})
     return JsonResponse(serializer.errors, status=400)
 
 
