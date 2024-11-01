@@ -1,5 +1,3 @@
-//guess-the-rating\frontend\src\pages\UserForm.js
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchSuggestions, addGame } from '../services/api';
@@ -10,6 +8,7 @@ const UserForm = () => {
   const [title, setTitle] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [user, setUser] = useState(null);
+  const [error, setError] = useState(''); // State for error message
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,11 +24,11 @@ const UserForm = () => {
     };
     fetchUser();
   }, []);
-  
-  // Handle title input change
+
   const handleTitleChange = (e) => {
     const query = e.target.value;
     setTitle(query);
+    setError('');  // Clear previous errors
 
     if (query.length >= 2) {
       fetchSuggestions(query)
@@ -42,28 +41,23 @@ const UserForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!user) {
       alert("You must be signed in to add a game.");
       return;
     }
-
-    const gameExists = suggestions.some(
-      (suggestion) => suggestion.title.toLowerCase() === title.toLowerCase()
-    );
-
-    if (!gameExists) {
-      alert("Game does not exist or already has a rating.");
-      return;
-    }
-
+  
     try {
       await addGame(title, user); // Pass title and user
       setTitle('');
+      setError(''); // Clear any previous error
       navigate('/');
       window.location.reload();
     } catch (error) {
       console.error('Error adding the game:', error);
+      const errorMessage = error.response?.data?.error || 'An error occurred while adding the game.';
+      setError(errorMessage); // Set error message in state
+      console.log("Setting error message:", errorMessage); // Log for debugging
     }
   };
 
@@ -82,6 +76,8 @@ const UserForm = () => {
             />
             <button type="submit">Submit</button>
           </div>
+          {/* Display error message */}
+          {error && <p className="error-message">{error}</p>}
           {/* Suggestions dropdown */}
           {suggestions.length > 0 && (
             <ul className="suggestions-dropdown">

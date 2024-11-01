@@ -63,7 +63,6 @@ def search_games(request):
     return JsonResponse({"error": "No query provided."}, status=400)
 
 
-
 @api_view(['POST'])
 def add_game(request):
     auth_header = request.headers.get('Authorization')
@@ -77,6 +76,9 @@ def add_game(request):
 
     if not username:
         return Response({'error': 'Username required for adding games.'}, status=400)
+
+    if Game.objects.filter(title__iexact=title).exists():
+        return Response({'error': 'Game already exists in the database.'}, status=400)
 
     if not ScrapedGame.objects.filter(title__iexact=title, score='tbd').exists():
         return Response({'error': 'Game does not exist or already has a rating.'}, status=400)
