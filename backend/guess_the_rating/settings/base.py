@@ -58,7 +58,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',  # Google login
     'corsheaders',              # Handle CORS for frontend
     'game_prediction',
-    'rest_framework_simplejwt',  # JWT support
 ]
 
 # Site ID (required by Allauth)

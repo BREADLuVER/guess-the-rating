@@ -2,6 +2,7 @@
   "name": "guess-the-rating",
   "version": "1.0.0",
   "private": true,
+  "homepage": "/",
   "dependencies": {
     "@aws-amplify/ui-react": "^6.3.1",
     "aws-amplify": "^6.6.0",
@@ -15,6 +16,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.26.2",
     "react-scripts": "^5.0.1",
+    "serve": "^14.2.4",
     "unframer": "^2.6.4",
     "web-vitals": "^4.2.3"
   },
