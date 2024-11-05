@@ -23,15 +23,22 @@ const JournalistRatingPage = () => {
       try {
         const { username } = await getCurrentUser();
         setUser(username);
+        localStorage.setItem('username', username);  // Save to localStorage
         console.log('UserRating user:', username);
-        fetchRatingData(username); // Fetch data for the user
+        fetchRatingData(username);  // Fetch data for the user
       } catch (error) {
         console.error('Error fetching user session:', error);
         setUser(null);
       }
     };
-
-    fetchUser();
+  
+    const storedUsername = localStorage.getItem('username');
+    if (storedUsername) {
+      setUser(storedUsername);
+      fetchRatingData(storedUsername);
+    } else {
+      fetchUser();
+    }
   }, []);
 
 
@@ -65,6 +72,7 @@ const submitRating = async (rating) => {
       setUserSubmittedRating(true);
       setUserRating(rating);
       await fetchRatingData();
+      window.location.reload();
     } else {
       setMessage('Failed to submit rating.');
     }
@@ -77,10 +85,6 @@ const submitRating = async (rating) => {
 
 const fetchRatingData = async (username) => {
   console.log('UserRating user:', username);
-  if (!username) {
-    console.error("Username or User ID is missing.");
-    return;
-  }
 
   try {
     const response = await axios.get(
