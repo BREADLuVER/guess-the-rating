@@ -210,10 +210,10 @@ function App() {
         <Route path="/chooseJournalist2/:gameTitle" element={<ChooseJournalist2 />} />
         <Route path="/chooseJournalist/:gameTitle" element={<ChooseJournalist />} />
         <Route path="/comingSoon" element={<ComingSoon />} />
-        <Route path="/user" element={user ? <UserPage /> : <SignIn />} />
         <Route path="/userForm" element={<UserForm />} />
         <Route path="/rate/:journalist/:gameTitle" element={<JournalistRatingPage />} />
-        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signin" element={<SignIn setUser={setUser} />} />
+        <Route path="/user" element={user ? <UserPage /> : <SignIn setUser={setUser} />} />
         <Route path="/signup" element={<SignUp />} />
       </Routes>
     </div>

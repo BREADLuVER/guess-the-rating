@@ -1,7 +1,7 @@
 # backend/game_prediction/urls.py
 
 from django.urls import path
-from .views import GameListView, GameDetailView, CreatePredictionView, AnalystPredictionsView
+from .views import GameListView, GameDetailView, CreatePredictionView, AnalystPredictionsView, UserSignInView
 from .views import CommentListView, CreateCommentView, search_games, add_game, increment_click, UserRegistrationView
 
 urlpatterns = [
@@ -15,4 +15,5 @@ urlpatterns = [
     path('api/predictions/<str:game_title>/<str:journalist_name>/', AnalystPredictionsView.as_view(), name='game-journalist-predictions'),
     path('increment-click/<int:game_id>/', increment_click, name='increment_click'),
     path('register/', UserRegistrationView.as_view(), name='register'),
+    path('login/', UserSignInView.as_view(), name='login'),
 ]

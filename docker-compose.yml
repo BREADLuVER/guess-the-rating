@@ -48,7 +48,7 @@ services:
       - NODE_ENV=production
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
-      - REACT_APP_BACKEND_URL=http://backend:8000
+      - REACT_APP_BACKEND_URL=http://localhost:8000
       - NODE_OPTIONS=--max-old-space-size=8192
     deploy:
       resources:

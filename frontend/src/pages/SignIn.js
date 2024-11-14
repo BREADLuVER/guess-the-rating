@@ -1,42 +1,42 @@
-import React, { useState } from 'react';
-import { signIn } from 'aws-amplify/auth';
-import { useNavigate, Link } from 'react-router-dom'; // Import Link for navigation
+import React, { useState } from 'react'; 
+import { signIn } from '../services/api';
+import { useNavigate, Link } from 'react-router-dom';
 import './SignIn.css';
 
-const SignIn = () => {
-  const [username, setUsername] = useState('');
+const SignIn = ({setUser}) => {
+  const [identifier, setIdentifier] = useState(''); // Unified field for username/email
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
   const handleSignIn = async () => {
+    console.log('Attempting sign-in with:', { identifier, password }); // Debug logging
     try {
-      const { nextStep } = await signIn({ username, password });
-      const signInStep = nextStep?.signInStep;
-
-      if (signInStep === 'DONE') {
-        navigate('/');
-        window.location.reload();
-      } else {
-        console.log(`Handle the next step: ${signInStep}`);
-      }
+      const response = await signIn(identifier, password);
+      console.log('Sign-in successful:', response.data);
+      setUser({ id: response.data.user_id, username: identifier });
+      // navigate('/');
+      // window.location.reload();
     } catch (error) {
-      console.error('Error signing in:', error);
-      setErrorMessage('Sign-in failed. Please check your credentials or complete the next step.');
+      console.error('Sign-in error:', error.response?.data || error.message);
+      setErrorMessage(
+        error.response?.data?.error || 'Sign-in failed. Please check your credentials.'
+      );
     }
   };
+  
 
   return (
     <div className="sign-in-page">
       <div className="sign-in-container">
         <h2>Sign In</h2>
-        <p>Please enter your username and password to sign in.</p>
+        <p>Please enter your username or email and password to sign in.</p>
         {errorMessage && <p className="error-message">{errorMessage}</p>}
         <input
           type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username or Email"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
           className="input-field"
         />
         <input

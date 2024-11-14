@@ -9,6 +9,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from django.http import JsonResponse
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
 from django.db.models import Q, Count
 from rest_framework.exceptions import ValidationError
@@ -252,3 +253,30 @@ class UserRegistrationView(APIView):
             serializer.save()
             return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserSignInView(APIView):
+    def post(self, request):
+        # Retrieve identifier and password
+        identifier = request.data.get('identifier')
+        password = request.data.get('password')
+
+        if not identifier or not password:
+            return Response({'error': 'Both identifier and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Determine if the identifier is an email
+        if '@' in identifier:
+            try:
+                user = User.objects.get(email=identifier)
+                username = user.username  # Retrieve username associated with the email
+            except User.DoesNotExist:
+                return Response({'error': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            username = identifier  # Treat identifier as username
+
+        # Authenticate the user
+        user = authenticate(request, username=username, password=password)
+        if user:
+            return Response({'message': 'Sign-in successful', 'user_id': user.id}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid username/email or password'}, status=status.HTTP_400_BAD_REQUEST)

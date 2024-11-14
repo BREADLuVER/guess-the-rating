@@ -41,3 +41,11 @@ export const registerUser = (username, email, password) => axios.post(`${API_URL
   email,
   password,
 });
+
+export const signIn = (identifier, password) => {
+  console.log('Sending sign-in request:', { identifier, password });
+  return axios.post(`${API_URL}/login/`, {
+    identifier, // Send as a root-level field
+    password,   // Send as a root-level field
+  });
+};
