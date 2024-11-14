@@ -28,16 +28,23 @@ const UserForm = () => {
   const handleTitleChange = (e) => {
     const query = e.target.value;
     setTitle(query);
-    setError('');  // Clear previous errors
-
+    setError(''); // Clear previous errors
+  
     if (query.length >= 2) {
       fetchSuggestions(query)
-        .then(response => setSuggestions(response.data))
-        .catch(error => console.error("Error fetching suggestions:", error));
+        .then(response => {
+          const suggestions = Array.isArray(response.data) ? response.data : [];
+          setSuggestions(suggestions);
+        })
+        .catch(error => {
+          console.error("Error fetching suggestions:", error);
+          setSuggestions([]); // Clear suggestions on error
+        });
     } else {
       setSuggestions([]);
     }
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();

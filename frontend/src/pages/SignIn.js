@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { signIn } from 'aws-amplify/auth';
-import { useNavigate } from 'react-router-dom';
-import './SignIn.css'; // Your CSS file
+import { useNavigate, Link } from 'react-router-dom'; // Import Link for navigation
+import './SignIn.css';
 
 const SignIn = () => {
   const [username, setUsername] = useState('');
@@ -11,30 +11,13 @@ const SignIn = () => {
 
   const handleSignIn = async () => {
     try {
-      // Call the signIn method with username and password
-      const { nextStep } = await signIn({
-        username,
-        password
-      });
-
-      // Check the signInStep from nextStep
+      const { nextStep } = await signIn({ username, password });
       const signInStep = nextStep?.signInStep;
 
-      console.log('Next step:', signInStep);
-
-      // Handle different signInStep values
       if (signInStep === 'DONE') {
-        // Sign-in is complete, navigate to the user page
         navigate('/');
-        window.location.reload(); 
-      } else if (signInStep === 'CONFIRM_SIGN_IN_WITH_SMS_CODE') {
-        // Handle SMS code confirmation if required
-        console.log('Please enter the SMS code.');
-      } else if (signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
-        // Handle new password confirmation if required
-        console.log('User must set a new password.');
+        window.location.reload();
       } else {
-        // Handle other potential next steps
         console.log(`Handle the next step: ${signInStep}`);
       }
     } catch (error) {
@@ -66,6 +49,12 @@ const SignIn = () => {
         <button onClick={handleSignIn} className="sign-in-button">
           Sign In
         </button>
+        <p>
+          Don't have an account?{' '}
+          <Link to="/signup" className="signup-link">
+            Sign up now
+          </Link>
+        </p>
       </div>
     </div>
   );

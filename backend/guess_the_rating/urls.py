@@ -29,4 +29,5 @@ urlpatterns = [
     path('api/predictions/<str:game_title>/<str:journalist_name>/', views.AnalystPredictionsView.as_view(), name='game-journalist-predictions'),
     path('increment-click/<int:game_id>/', views.increment_click, name='increment_click'),
     path('search-games/', views.search_games, name='search_games'),
+    path('register/', views.UserRegistrationView.as_view(), name='register'),
 ]   

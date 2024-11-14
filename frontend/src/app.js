@@ -21,6 +21,7 @@ import ChooseJournalist2 from './pages/ChooseJournalist2';
 import JournalistRatingPage from './pages/JournalistRatingPage';
 import ComingSoon from './pages/ComingSoon';
 import SignIn from './pages/SignIn';
+import SignUp from './pages/Signup';
 
 function useWindowSize() {
   const [windowSize, setWindowSize] = useState({
@@ -209,10 +210,11 @@ function App() {
         <Route path="/chooseJournalist2/:gameTitle" element={<ChooseJournalist2 />} />
         <Route path="/chooseJournalist/:gameTitle" element={<ChooseJournalist />} />
         <Route path="/comingSoon" element={<ComingSoon />} />
-        <Route path="/user" element={user ? <UserPage /> : <SignIn />} />  {/* Show sign-in page if not authenticated */}
+        <Route path="/user" element={user ? <UserPage /> : <SignIn />} />
         <Route path="/userForm" element={<UserForm />} />
         <Route path="/rate/:journalist/:gameTitle" element={<JournalistRatingPage />} />
-        <Route path="/signin" element={<SignIn />} />  {/* Add a custom sign-in route */}
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
       </Routes>
     </div>
     </Router>

@@ -35,3 +35,9 @@ export const addGame = (title, user) => axios.post(`${API_URL}/api/add-game/`, {
   title,
   username: user
 });
+
+export const registerUser = (username, email, password) => axios.post(`${API_URL}/register/`, {
+  username,
+  email,
+  password,
+});

@@ -44,8 +44,6 @@ services:
 
   frontend:
     build: ./frontend
-    volumes:
-      - ./frontend:/app
     environment:
       - NODE_ENV=production
       - CHOKIDAR_USEPOLLING=true

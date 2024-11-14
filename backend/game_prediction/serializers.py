@@ -2,6 +2,7 @@
 
 from rest_framework import serializers
 from .models import Game, Prediction, Comment
+from django.contrib.auth.models import User
 
 class GameSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,3 +25,18 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['id', 'user', 'game', 'content', 'created_at', 'parent']
+
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password']
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password']
+        )
+        return user

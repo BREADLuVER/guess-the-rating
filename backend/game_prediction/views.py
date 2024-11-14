@@ -1,9 +1,9 @@
 # backend/game_prediction/views.py
 
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.views import APIView
 from .models import Game, Prediction, Comment, ScrapedGame, GameClick
-from .serializers import GameSerializer, PredictionSerializer, CommentSerializer
+from .serializers import GameSerializer, PredictionSerializer, CommentSerializer, UserRegistrationSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -225,6 +225,7 @@ class CommentListView(generics.ListAPIView):
         game_id = self.kwargs['game_id']
         return Comment.objects.filter(game_id=game_id)
 
+
 # Submit a comment
 class CreateCommentView(generics.CreateAPIView):
     serializer_class = CommentSerializer
@@ -233,7 +234,21 @@ class CreateCommentView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+
 # Leaderboard view to rank users by prediction accuracy
 class LeaderboardView(generics.ListAPIView):
     # We'll define this logic later
     pass
+
+
+class UserRegistrationView(APIView):
+    def post(self, request):
+        serializer = UserRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            if User.objects.filter(username=serializer.validated_data['username']).exists():
+                return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
+            if User.objects.filter(email=serializer.validated_data['email']).exists():
+                return Response({'error': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
+            serializer.save()
+            return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
