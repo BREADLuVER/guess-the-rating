@@ -32,15 +32,6 @@ const UserForm = () => {
   
     if (query.length >= 2) {
       fetchSuggestions(query)
-<<<<<<< Updated upstream
-        .then(response => {
-          const suggestions = Array.isArray(response.data) ? response.data : [];
-          setSuggestions(suggestions);
-        })
-        .catch(error => {
-          console.error("Error fetching suggestions:", error);
-          setSuggestions([]); // Clear suggestions on error
-=======
         .then((response) => {
           console.log("API response:", response.data); // Debug API data
           const data = Array.isArray(response.data) ? response.data : [];
@@ -49,7 +40,6 @@ const UserForm = () => {
         .catch((error) => {
           console.error("Error fetching suggestions:", error);
           setSuggestions([]); // Reset suggestions on error
->>>>>>> Stashed changes
         });
     } else {
       setSuggestions([]);
