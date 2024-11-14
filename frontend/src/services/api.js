@@ -16,6 +16,7 @@ axios.interceptors.request.use((config) => {
 });
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
+console.log("API_URL:", API_URL);
 
 export const fetchGames = () => axios.get(`${API_URL}/games/`);
 
