@@ -10,13 +10,26 @@ const SignIn = ({setUser}) => {
   const navigate = useNavigate();
 
   const handleSignIn = async () => {
-    console.log('Attempting sign-in with:', { identifier, password }); // Debug logging
+    console.log('Attempting sign-in with:', { identifier, password });
     try {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      
       const response = await signIn(identifier, password);
+
+      const { access_token, refresh_token, user_id, username } = response.data;
+
       console.log('Sign-in successful:', response.data);
-      setUser({ id: response.data.user_id, username: identifier });
-      // navigate('/');
-      // window.location.reload();
+
+      // Store tokens
+      localStorage.setItem('authToken', access_token);
+      localStorage.setItem('refreshToken', refresh_token);
+
+      // Set user state
+      setUser({ id: user_id, username });
+
+      // Navigate to user page
+      navigate('/user');
     } catch (error) {
       console.error('Sign-in error:', error.response?.data || error.message);
       setErrorMessage(
@@ -24,7 +37,6 @@ const SignIn = ({setUser}) => {
       );
     }
   };
-  
 
   return (
     <div className="sign-in-page">

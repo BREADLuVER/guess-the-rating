@@ -5,12 +5,12 @@ import axios from 'axios';
 const getAuthToken = () => localStorage.getItem('authToken');
 
 axios.interceptors.request.use((config) => {
-  const token = getAuthToken();
+  const token = localStorage.getItem('authToken');
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`; // Ensure `Bearer ` prefix is added
-    console.log("Authorization header:", config.headers.Authorization); // Log to verify
+    config.headers.Authorization = `Bearer ${token}`;
+    console.log('API Request:', config.url, 'Authorization:', config.headers.Authorization);
   } else {
-    console.log("No token found in localStorage.");
+    console.log('No token found.');
   }
   return config;
 });
@@ -32,10 +32,18 @@ export const fetchSuggestions = (query) => axios.get(`${API_URL}/search-games/`,
     params: { query },
   });
 
-export const addGame = (title, user) => axios.post(`${API_URL}/api/add-game/`, {
-  title,
-  username: user
-});
+export const addGame = async (title, user, token) => {
+  const response = await axios.post(
+    `${API_URL}/api/games/`,
+    { title, user },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response;
+};
 
 export const registerUser = (username, email, password) => axios.post(`${API_URL}/register/`, {
   username,
@@ -49,4 +57,26 @@ export const signIn = (identifier, password) => {
     identifier, // Send as a root-level field
     password,   // Send as a root-level field
   });
+};
+
+export const fetchUserDetails = async (token) => {
+  const response = await axios.get(`${API_URL}/api/user/`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};
+
+export const updatePassword = async (oldPassword, newPassword, token) => {
+  const response = await axios.put(
+    `${API_URL}/api/user/password/`,
+    { oldPassword, newPassword },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response;
 };

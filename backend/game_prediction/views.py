@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from django.http import JsonResponse
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
@@ -256,6 +257,8 @@ class UserRegistrationView(APIView):
 
 
 class UserSignInView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         # Retrieve identifier and password
         identifier = request.data.get('identifier')
@@ -264,19 +267,40 @@ class UserSignInView(APIView):
         if not identifier or not password:
             return Response({'error': 'Both identifier and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Determine if the identifier is an email
-        if '@' in identifier:
-            try:
+        # Determine if the identifier is an email or username
+        try:
+            if '@' in identifier:  # Check for email
                 user = User.objects.get(email=identifier)
                 username = user.username  # Retrieve username associated with the email
-            except User.DoesNotExist:
-                return Response({'error': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            username = identifier  # Treat identifier as username
+            else:
+                username = identifier  # Treat identifier as username
+                user = User.objects.get(username=username)  # Verify user exists
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid username/email or password'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Authenticate the user
         user = authenticate(request, username=username, password=password)
         if user:
-            return Response({'message': 'Sign-in successful', 'user_id': user.id}, status=status.HTTP_200_OK)
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'message': 'Sign-in successful',
+                'user_id': user.id,
+                'username': user.username,
+                'access_token': str(refresh.access_token),
+                'refresh_token': str(refresh)
+            }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid username/email or password'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+class UserDetailsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response({
+            'user_id': user.id,
+            'username': user.username,
+            'email': user.email
+        }, status=200)

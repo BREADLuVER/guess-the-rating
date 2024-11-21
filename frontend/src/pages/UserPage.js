@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchAuthSession, getCurrentUser, signInWithRedirect, signOut, updatePassword } from 'aws-amplify/auth';
-import { Hub } from 'aws-amplify/utils';
+import { fetchUserDetails, updatePassword } from '../services/api';
 import './UserPage.css';
 
 const UserPage = () => {
@@ -12,89 +11,59 @@ const UserPage = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
+  // Fetch user details on component mount
   useEffect(() => {
-    // Listen for auth events to update user state
-    const unsubscribe = Hub.listen('auth', ({ payload }) => {
-      switch (payload.event) {
-        case 'signInWithRedirect':
-          fetchUser();
-          break;
-        case 'signOut':
-          setUser(null);
-          localStorage.removeItem('authToken');
-          window.location.reload();
-          break;
-        case 'tokenRefresh':
-          console.log('Auth tokens have been refreshed.');
-          storeToken(); // Refresh and store the new token
-          break;
-        case 'tokenRefresh_failure':
-          console.error('Failure while refreshing auth tokens.');
-          break;
-        default:
-          break;
-      }
-    });
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          throw new Error('No authentication token found. Please sign in again.');
+        }
 
-    // Initial fetch of user data and token
+        const userDetails = await fetchUserDetails(token);
+        setUser(userDetails);
+        console.log('User fetched successfully:', userDetails);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        setErrorMessage('Failed to fetch user details. Please log in again.');
+        setUser(null);
+        localStorage.removeItem('authToken');
+        navigate('/signin'); // Redirect to login
+      }
+    };
+
     fetchUser();
-
-    // Cleanup Hub listener
-    return () => unsubscribe();
-  }, []);
-
-  const fetchUser = async () => {
-    try {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-      storeToken();
-    } catch (error) {
-      console.error('Error fetching user:', error);
-      setErrorMessage('Error fetching user session.');
-    }
-  };
-
-  const storeToken = async () => {
-    try {
-      const session = await fetchAuthSession();
-      const accessToken = session.tokens?.accessToken; // Retrieve access token directly
-  
-      if (accessToken) {
-        console.log("User session access token:", accessToken); // Verify that this is the token string
-        localStorage.setItem('authToken', accessToken); // Store only the token string
-      } else {
-        console.error("Access token not found in session.");
-      }
-    } catch (error) {
-      console.error("Error fetching auth session:", error);
-    }
-  };
-
-  // Handle sign out and clear token from storage
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      setUser(null);
-      localStorage.removeItem('authToken');
-      navigate('/');
-      window.location.reload();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
+  }, [navigate]);
 
   // Handle password change
   const handleChangePassword = async () => {
     try {
-      await updatePassword(user, oldPassword, newPassword);
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found. Please sign in again.');
+      }
+
+      await updatePassword(oldPassword, newPassword, token);
       setSuccessMessage('Password changed successfully!');
       setErrorMessage('');
     } catch (error) {
       console.error('Error changing password:', error);
-      setErrorMessage('Error changing password. Please ensure the old password is correct.');
+      const errorDetail = error.response?.data?.error || 'Failed to change password.';
+      setErrorMessage(errorDetail);
       setSuccessMessage('');
     }
   };
+
+  // Handle sign out
+  const handleSignOut = () => {
+    localStorage.removeItem('authToken'); // Clear token
+    setUser(null);
+    navigate('/signin'); // Redirect to login
+  };
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
 
   if (user && user.username === 'Guest') {
     return (

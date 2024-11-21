@@ -31,4 +31,5 @@ urlpatterns = [
     path('search-games/', views.search_games, name='search_games'),
     path('register/', views.UserRegistrationView.as_view(), name='register'),
     path('login/', views.UserSignInView.as_view(), name='login'),
+    path('user/', views.UserDetailsView.as_view(), name='user-details'),
 ]   

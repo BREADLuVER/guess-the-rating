@@ -14,6 +14,7 @@ from pathlib import Path
 import mimetypes
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv 
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -58,6 +59,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',  # Google login
     'corsheaders',              # Handle CORS for frontend
     'game_prediction',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 # Site ID (required by Allauth)
@@ -70,7 +72,16 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),  # Short-lived access token
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Long-lived refresh token
+    'ROTATE_REFRESH_TOKENS': True,                 # Rotate refresh tokens on use
+    'BLACKLIST_AFTER_ROTATION': True,              # Blacklist old refresh tokens
+    'AUTH_HEADER_TYPES': ('Bearer',),              # Expected token type in the header
 }
 
 # Allauth and REST auth settings
@@ -88,6 +99,7 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv('GOOGLE_CLIENT_ID')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -96,7 +108,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 # CORS configuration for cross-origin requests
@@ -201,3 +212,17 @@ STATIC_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../sta
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}

@@ -5,16 +5,21 @@ import { getCurrentUser } from 'aws-amplify/auth';
 import './UserForm.css';
 
 const UserForm = () => {
+  const [user, setUser] = useState(null);
   const [title, setTitle] = useState('');
   const [suggestions, setSuggestions] = useState([]);
-  const [user, setUser] = useState(null);
-  const [error, setError] = useState(''); // State for error message
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  // Fetch the authenticated user details
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { username } = await getCurrentUser();
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+        const { username } = await fetchUserDetails(token);
         setUser(username);
         console.log('UserForm user:', username);
       } catch (error) {
@@ -25,11 +30,12 @@ const UserForm = () => {
     fetchUser();
   }, []);
 
+  // Handle title changes and fetch suggestions
   const handleTitleChange = (e) => {
     const query = e.target.value;
     setTitle(query);
     setError(''); // Clear previous errors
-  
+
     if (query.length >= 2) {
       fetchSuggestions(query)
         .then((response) => {
@@ -45,18 +51,22 @@ const UserForm = () => {
       setSuggestions([]);
     }
   };
-  
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!user) {
       alert("You must be signed in to add a game.");
       return;
     }
-  
+
     try {
-      await addGame(title, user); // Pass title and user
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      await addGame(title, user, token); // Pass title, user, and token
       setTitle('');
       setError(''); // Clear any previous error
       navigate('/');
