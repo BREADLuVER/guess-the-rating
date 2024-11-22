@@ -14,10 +14,14 @@ const SignIn = ({setUser}) => {
     try {
       localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');
-      
+
       const response = await signIn(identifier, password);
 
       const { access_token, refresh_token, user_id, username } = response.data;
+      
+      if (!access_token || !refresh_token) {
+        throw new Error('Invalid response from server: Missing tokens');
+      }
 
       console.log('Sign-in successful:', response.data);
 
@@ -30,6 +34,7 @@ const SignIn = ({setUser}) => {
 
       // Navigate to user page
       navigate('/user');
+      window.location.reload();
     } catch (error) {
       console.error('Sign-in error:', error.response?.data || error.message);
       setErrorMessage(

@@ -59,6 +59,7 @@ const UserPage = () => {
     localStorage.removeItem('authToken'); // Clear token
     setUser(null);
     navigate('/signin'); // Redirect to login
+    window.location.reload(); // Reload the page to clear state
   };
 
   if (!user) {

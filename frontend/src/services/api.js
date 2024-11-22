@@ -3,6 +3,7 @@
 import axios from 'axios';
 
 const getAuthToken = () => localStorage.getItem('authToken');
+const getRefreshToken = () => localStorage.getItem('refreshToken');
 
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem('authToken');
@@ -51,21 +52,96 @@ export const registerUser = (username, email, password) => axios.post(`${API_URL
   password,
 });
 
-export const signIn = (identifier, password) => {
-  console.log('Sending sign-in request:', { identifier, password });
-  return axios.post(`${API_URL}/login/`, {
-    identifier, // Send as a root-level field
-    password,   // Send as a root-level field
-  });
+// Save the new tokens to localStorage
+const saveTokens = (accessToken, refreshToken) => {
+  if (accessToken) localStorage.setItem('authToken', accessToken);
+  if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
 };
 
-export const fetchUserDetails = async (token) => {
-  const response = await axios.get(`${API_URL}/api/user/`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+// Remove tokens (for logout)
+const clearTokens = () => {
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('refreshToken');
+};
+
+// Refresh token logic
+const refreshAuthToken = async () => {
+  try {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) throw new Error('No refresh token found.');
+
+    const response = await axios.post(`${API_URL}/token/refresh/`, { refresh: refreshToken });
+    const { access } = response.data;
+    saveTokens(access, refreshToken); // Save the new access token
+    return access;
+  } catch (error) {
+    console.error('Failed to refresh token:', error);
+    clearTokens();
+    throw error;
+  }
+};
+
+// Axios interceptor for adding Authorization header and handling token expiry
+axios.interceptors.request.use(
+  async (config) => {
+    let token = getAuthToken();
+
+    // If token exists, add it to the Authorization header
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Axios interceptor to handle token expiry
+axios.interceptors.response.use(
+  (response) => response, // Pass through successful responses
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const newAccessToken = await refreshAuthToken();
+        if (!newAccessToken) throw new Error('Failed to refresh token');
+        
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        return axios(originalRequest);
+      } catch (refreshError) {
+        console.error('Failed to refresh token:', refreshError);
+        clearTokens(); // Ensure tokens are cleared
+        window.location.href = '/signin'; // Redirect to sign-in page
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error); // Pass through other errors
+  }
+);
+
+// Export API functions
+export const fetchUserDetails = async () => {
+  const response = await axios.get(`${API_URL}/user/`);
   return response.data;
+};
+
+export const signIn = async (identifier, password) => {
+  try {
+    const response = await axios.post(`${API_URL}/login/`, { identifier, password });
+    console.log('Sign-in response data:', response.data); // Log the data returned by the API
+    return response; // Ensure this returns the full Axios response
+  } catch (error) {
+    console.error('Sign-in API error:', error.response?.data || error.message);
+    throw error; // Forward the error for proper handling in the caller
+  }
+};
+
+export const signOut = () => {
+  clearTokens();
 };
 
 export const updatePassword = async (oldPassword, newPassword, token) => {

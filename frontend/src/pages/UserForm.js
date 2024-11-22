@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchSuggestions, addGame } from '../services/api';
-import { getCurrentUser } from 'aws-amplify/auth';
+import { fetchSuggestions, addGame, fetchUserDetails} from '../services/api';
 import './UserForm.css';
 
 const UserForm = () => {
@@ -15,15 +14,11 @@ const UserForm = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-        const { username } = await fetchUserDetails(token);
-        setUser(username);
-        console.log('UserForm user:', username);
+        const userDetails = await fetchUserDetails();
+        setUser(userDetails.username);
+        console.log('UserForm user:', userDetails.username);
       } catch (error) {
-        console.error("Error fetching user session:", error);
+        console.error('Error fetching user session:', error);
         setUser(null);
       }
     };

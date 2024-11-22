@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { Amplify } from 'aws-amplify';
-import { getCurrentUser, signOut } from 'aws-amplify/auth';
 import axios from 'axios';
 import '@aws-amplify/ui-react/styles.css';
 import config from './amplifyconfiguration.json';
 import './app.css';
+import { fetchUserDetails, signOut} from './services/api';
 Amplify.configure(config);
 
 // Import the Framer Navigation component
@@ -76,24 +76,20 @@ function App() {
     }
   };
 
+  const fetchAuthenticatedUser = async () => {
+    try {
+      const userDetails = await fetchUserDetails();
+      setUser(userDetails);
+    } catch (error) {
+      console.error('Error fetching authenticated user:', error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Fetch games on component mount and get current user info
   useEffect(() => {
-    async function fetchAuthenticatedUser() {
-      try {
-        const user = await getCurrentUser();
-        if (user) {
-          setUser(user);  // Set user state if logged in
-        } else {
-          setUser(null);  // Clear user state if not logged in
-        }
-      } catch (err) {
-        console.log(err);
-        setUser(null);
-      } finally {
-        setLoading(false);  // Set loading to false once done
-      }
-    }
-
     fetchAuthenticatedUser();
     fetchGames();
   }, []);
@@ -131,13 +127,23 @@ function App() {
       });
   };
 
+  const handleSignOut = () => {
+    signOut(); // Clear tokens and reset user state
+    setUser(null);
+    navigate('/signin'); // Redirect to sign-in page
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+
   return (
     <Router>
     <div className="nav-container">
       {/* Responsive Navigation Component */}
       <Navigation 
         userName={user ? user.username : 'Guest'}
-        //onSignOut={handleSignOut}
         className="!w-full"
         style={{ width: '100%' }}
         variant={variant}
