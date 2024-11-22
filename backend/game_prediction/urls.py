@@ -2,7 +2,7 @@
 
 from django.urls import path
 from .views import GameListView, GameDetailView, CreatePredictionView, AnalystPredictionsView, UserSignInView, UserDetailsView
-from .views import CommentListView, CreateCommentView, search_games, add_game, increment_click, UserRegistrationView
+from .views import CommentListView, CreateCommentView, search_games, add_game, increment_click, UserRegistrationView, UpdatePasswordView
 
 urlpatterns = [
     path('games/', GameListView.as_view(), name='game-list'),
@@ -17,4 +17,5 @@ urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='register'),
     path('login/', UserSignInView.as_view(), name='login'),
     path('user/', UserDetailsView.as_view(), name='user-details'),
+    path('api/user/password/', UpdatePasswordView.as_view(), name='update-password'),
 ]

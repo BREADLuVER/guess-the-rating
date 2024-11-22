@@ -20,6 +20,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 import logging
+from django.contrib.auth.hashers import check_password, make_password
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 logger = logging.getLogger(__name__)
 
@@ -304,3 +306,21 @@ class UserDetailsView(APIView):
             'username': user.username,
             'email': user.email
         }, status=200)
+
+
+class UpdatePasswordView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user = request.user
+        old_password = request.data.get('oldPassword')
+        new_password = request.data.get('newPassword')
+
+        if not check_password(old_password, user.password):
+            return Response({'error': 'Old password is incorrect'}, status=400)
+
+        user.password = make_password(new_password)
+        user.save()
+
+        return Response({'message': 'Password updated successfully'})

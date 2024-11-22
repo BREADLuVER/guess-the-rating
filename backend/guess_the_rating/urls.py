@@ -32,4 +32,5 @@ urlpatterns = [
     path('register/', views.UserRegistrationView.as_view(), name='register'),
     path('login/', views.UserSignInView.as_view(), name='login'),
     path('user/', views.UserDetailsView.as_view(), name='user-details'),
+    path('api/user/password/', views.UpdatePasswordView.as_view(), name='update-password'),
 ]   
