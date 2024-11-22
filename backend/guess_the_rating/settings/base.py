@@ -78,7 +78,7 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),  # Short-lived access token
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Long-lived refresh token
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=15),    # Long-lived refresh token
     'ROTATE_REFRESH_TOKENS': True,                 # Rotate refresh tokens on use
     'BLACKLIST_AFTER_ROTATION': True,              # Blacklist old refresh tokens
     'AUTH_HEADER_TYPES': ('Bearer',),              # Expected token type in the header
