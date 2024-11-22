@@ -95,6 +95,8 @@ def add_game(request):
 
 
 # Sort games by click_count in descending order
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def game_list(request):
     games = Game.objects.all().order_by('-click_count')
     return render(request, 'game_list.html', {'games': games})
