@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { useParams } from 'react-router-dom';
 import './JournalistRatingPage.css';
-import { getCurrentUser } from 'aws-amplify/auth';
 import axios from 'axios';
 import { Chart, registerables } from 'chart.js';
 import RatingBadge from './RatingBadge';
-Chart.register(...registerables);
 
+Chart.register(...registerables);
 
 const JournalistRatingPage = () => {
   const [user, setUser] = useState(null);
@@ -18,112 +17,110 @@ const JournalistRatingPage = () => {
   const [userSubmittedRating, setUserSubmittedRating] = useState(false);
   const [userRating, setUserRating] = useState(null);
 
+  const API_URL = process.env.REACT_APP_BACKEND_URL;
+
   useEffect(() => {
-    const fetchUser = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setUser(null);
+      setMessage('Please sign in to submit your rating.');
+      return;
+    }
+
+    const fetchUserData = async () => {
       try {
-        const { username } = await getCurrentUser();
-        setUser(username);
-        localStorage.setItem('username', username);  // Save to localStorage
-        console.log('UserRating user:', username);
-        fetchRatingData(username);  // Fetch data for the user
+        const response = await axios.get(`${API_URL}/user/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(response.data.username);
+        fetchRatingData(response.data.username);
       } catch (error) {
-        console.error('Error fetching user session:', error);
+        console.error('Error fetching user data:', error);
         setUser(null);
+        setMessage('Please sign in to submit your rating.');
       }
     };
-  
-    const storedUsername = localStorage.getItem('username');
-    if (storedUsername) {
-      setUser(storedUsername);
-      fetchRatingData(storedUsername);
-    } else {
-      fetchUser();
+
+    fetchUserData();
+  }, [API_URL]);
+
+  const submitRating = async (rating) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setMessage('You must be signed in to rate a game.');
+      return;
     }
-  }, []);
 
-
-const API_URL = process.env.REACT_APP_BACKEND_URL;
-
-
-const submitRating = async (rating) => {
-  if (!user) {
-    setMessage("You must be signed in to rate a game.");
-    return;
-  }
-
-  try {
-    const response = await axios.post(
-      `${API_URL}/api/predictions/`,
-      {
-        user,
-        game: gameTitle,
-        journalist,
-        predicted_rating: rating,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/predictions/`,
+        {
+          user,
+          game: gameTitle,
+          journalist,
+          predicted_rating: rating,
         },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-    if (response.status === 201) {
-      setMessage(`You have predicted ${journalist} will rate ${gameTitle} a ${rating}/10!`);
-      setUserSubmittedRating(true);
-      setUserRating(rating);
-      await fetchRatingData();
-      window.location.reload();
-    } else {
-      setMessage('Failed to submit rating.');
+      if (response.status === 201) {
+        setMessage(`You have predicted ${journalist} will rate ${gameTitle} a ${rating}/10!`);
+        setUserSubmittedRating(true);
+        setUserRating(rating);
+        fetchRatingData(user);
+      } else {
+        setMessage('Failed to submit rating.');
+      }
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      setMessage('An error occurred while submitting your rating.');
     }
-  } catch (error) {
-    console.error('Error submitting rating:', error);
-    setMessage('An error occurred while submitting your rating.');
-  }
-};
-
-
-const fetchRatingData = async (username) => {
-  console.log('UserRating user:', username);
-
-  try {
-    const response = await axios.get(
-      `${API_URL}/api/predictions/${gameTitle}/${journalist}/?username=${username}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true,
-      }
-    );
-
-    const fetchedData = response.data;
-    console.log('Fetched Data:', fetchedData);
-
-    const ratingsArray = fetchedData.ratings || [];
-    const mappedData = mapDataToGraph(ratingsArray);
-    setRatingData(mappedData);
-
-    const userSubmitted = fetchedData.userRating;
-    console.log('User Submitted:', userSubmitted);
-
-    setUserSubmittedRating(userSubmitted);
-    setUserRating(userSubmitted || null);
-  } catch (error) {
-    console.error('Error fetching ratings data:', error);
-  }
   };
 
+  const fetchRatingData = async (username) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setMessage('Please sign in to view ratings.');
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/predictions/${gameTitle}/${journalist}/?username=${username}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const fetchedData = response.data;
+      const ratingsArray = fetchedData.ratings || [];
+      const mappedData = mapDataToGraph(ratingsArray);
+      setRatingData(mappedData);
+
+      const userSubmitted = fetchedData.userRating;
+      setUserSubmittedRating(!!userSubmitted);
+      setUserRating(userSubmitted || null);
+    } catch (error) {
+      console.error('Error fetching ratings data:', error);
+    }
+  };
 
   const handleRatingChange = (rating) => {
     setSelectedRating(rating);
     submitRating(rating);
   };
 
-  
   const mapDataToGraph = (data) => {
     const ratingsArray = Array(10).fill(0);
-    data.forEach(item => {
+    data.forEach((item) => {
       const ratingIndex = item.predicted_rating - 1;
       if (ratingIndex >= 0 && ratingIndex < 10) {
         ratingsArray[ratingIndex] += item.count;
@@ -132,9 +129,8 @@ const fetchRatingData = async (username) => {
     return ratingsArray;
   };
 
-
   const graphData = ratingData && {
-    labels: [...Array(10).keys()].map(i => (i + 1).toString()),
+    labels: [...Array(10).keys()].map((i) => (i + 1).toString()),
     datasets: [
       {
         label: 'Ratings Distribution',
@@ -144,7 +140,6 @@ const fetchRatingData = async (username) => {
       },
     ],
   };
-
 
   return (
     <div className="rating-page-container">
