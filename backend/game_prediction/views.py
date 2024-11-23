@@ -19,9 +19,11 @@ from rest_framework.response import Response
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.tokens import default_token_generator
 from django.http import JsonResponse
 import logging
 from django.contrib.auth.hashers import check_password, make_password
+from django.core.mail import send_mail
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 logger = logging.getLogger(__name__)
@@ -327,3 +329,25 @@ class UpdatePasswordView(APIView):
         user.save()
 
         return Response({'message': 'Password updated successfully'})
+    
+
+@api_view(['POST'])
+def send_password_reset_email(request):
+    email = request.data.get('email')
+    if not email:
+        return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(email=email)
+        token = default_token_generator.make_token(user)
+        reset_url = f"{request.build_absolute_uri('/reset-password')}?token={token}&email={email}"
+        send_mail(
+            'Password Reset Request',
+            f'Click the link to reset your password: {reset_url}',
+            'noreply@yourdomain.com',
+            [email],
+            fail_silently=False,
+        )
+        return Response({'message': 'Password reset email sent.'}, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({'error': 'No user found with this email.'}, status=status.HTTP_404_NOT_FOUND)

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchUserDetails, updatePassword } from '../services/api';
+import axios from 'axios';
 import './UserPage.css';
 
 const UserPage = () => {
@@ -9,9 +10,13 @@ const UserPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [user, setUser] = useState(null);
+  const [email, setEmail] = useState('');
+  const [emailSent, setEmailSent] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch user details on component mount
+  const API_URL = process.env.REACT_APP_BACKEND_URL;
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -19,74 +24,53 @@ const UserPage = () => {
         if (!token) {
           throw new Error('No authentication token found. Please sign in again.');
         }
-
         const userDetails = await fetchUserDetails(token);
         setUser(userDetails);
-        console.log('User fetched successfully:', userDetails);
       } catch (error) {
-        console.error('Error fetching user:', error);
         setErrorMessage('Failed to fetch user details. Please log in again.');
         setUser(null);
         localStorage.removeItem('authToken');
-        navigate('/signin'); // Redirect to login
+        navigate('/signin');
       }
     };
 
     fetchUser();
   }, [navigate]);
 
-  // Handle password change
   const handleChangePassword = async () => {
     try {
       const token = localStorage.getItem('authToken');
       if (!token) {
         throw new Error('No authentication token found. Please sign in again.');
       }
-
       await updatePassword(oldPassword, newPassword, token);
       setSuccessMessage('Password changed successfully!');
-      setErrorMessage('');
     } catch (error) {
-      console.error('Error changing password:', error);
-      const errorDetail = error.response?.data?.error || 'Failed to change password.';
-      setErrorMessage(errorDetail);
-      setSuccessMessage('');
+      setErrorMessage('Failed to change password.');
     }
   };
 
-  // Handle sign out
-  const handleSignOut = () => {
-    localStorage.removeItem('authToken'); // Clear token
-    setUser(null);
-    navigate('/signin'); // Redirect to login
-    window.location.reload(); // Reload the page to clear state
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API_URL}/api/password-reset/`, { email });
+      setEmailSent(true);
+    } catch (error) {
+      setErrorMessage('Failed to send password reset email. Please try again.');
+    }
   };
 
-  if (!user) {
-    return <div>Loading...</div>;
-  }
+  const handleSignOut = () => {
+    localStorage.removeItem('authToken');
+    setUser(null);
+    navigate('/signin');
+    window.location.reload();
+  };
 
-  if (user && user.username === 'Guest') {
-    return (
-      <div className="user-page">
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-          <h2>Welcome Guest!</h2>
-          <p>Please sign in to access your account.</p>
-          <button onClick={() => signInWithRedirect({ provider: 'Google' })} style={{ padding: '10px 20px', marginTop: '10px' }}>
-            Sign In
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Render Change Password and Sign Out options if user is signed in
   return (
     <div className="user-page">
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <h2>User Settings</h2>
-
-        {/* Change Password Form */}
         <div style={{ marginBottom: '20px' }}>
           <h3>Change Password</h3>
           <input
@@ -94,30 +78,53 @@ const UserPage = () => {
             placeholder="Current Password"
             value={oldPassword}
             onChange={(e) => setOldPassword(e.target.value)}
-            style={{ margin: '5px', padding: '8px', width: '200px' }}
           />
-          <br />
           <input
             type="password"
             placeholder="New Password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            style={{ margin: '5px', padding: '8px', width: '200px' }}
           />
-          <br />
-          <button onClick={handleChangePassword} style={{ padding: '10px 20px', marginTop: '10px' }}>
-            Change Password
-          </button>
+          <button onClick={handleChangePassword}>Change Password</button>
         </div>
-
-        {/* Logout Button */}
         <div>
-          <button onClick={handleSignOut} style={{ padding: '10px 20px', marginTop: '10px' }}>
-            Log Out
-          </button>
+          <button onClick={handleSignOut}>Log Out</button>
         </div>
 
-        {/* Success and Error Messages */}
+        {/* Forgot Password */}
+        <div>
+          <button
+            onClick={() => setShowForgotPassword(true)}
+            className="forgot-password-button"
+          >
+            Forgot Password?
+          </button>
+        </div>
+        {showForgotPassword && (
+          <div className="forgot-password-modal">
+            <h3>Forgot Password</h3>
+            {emailSent ? (
+              <p>A password reset link has been sent to your email.</p>
+            ) : (
+              <form onSubmit={handleForgotPassword}>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <button type="submit">Send Reset Link</button>
+              </form>
+            )}
+            <button
+              onClick={() => setShowForgotPassword(false)}
+              className="close-modal-button"
+            >
+              Close
+            </button>
+          </div>
+        )}
         {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
         {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
       </div>
