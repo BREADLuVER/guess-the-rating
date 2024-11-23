@@ -5,21 +5,35 @@ import axios from 'axios';
 const getAuthToken = () => localStorage.getItem('authToken');
 const getRefreshToken = () => localStorage.getItem('refreshToken');
 
-axios.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-    console.log('API Request:', config.url, 'Authorization:', config.headers.Authorization);
-  } else {
-    console.log('No token found.');
-  }
-  return config;
-});
+axios.interceptors.request.use(
+  (config) => {
+    const token = getAuthToken();
+    const publicEndpoints = ['/api/games/', '/api/search-games/'];
+    const isPublicEndpoint = publicEndpoints.some((endpoint) => config.url.includes(endpoint));
+
+    if (!isPublicEndpoint && token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(
+        isPublicEndpoint
+          ? `Public API Request: ${config.url}`
+          : `API Request with token: ${config.url}`
+      );
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 console.log("API_URL:", API_URL);
 
-export const fetchGames = () => axios.get(`${API_URL}/games/`);
+export const fetchGames = async () => {
+  const response = await axios.get(`${API_URL}/api/games/`);
+  return response.data;
+};
 
 export const fetchGameDetails = (gameId) => axios.get(`${API_URL}/games/${gameId}/`);
 
@@ -81,20 +95,6 @@ const refreshAuthToken = async () => {
   }
 };
 
-// Axios interceptor for adding Authorization header and handling token expiry
-axios.interceptors.request.use(
-  async (config) => {
-    let token = getAuthToken();
-
-    // If token exists, add it to the Authorization header
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
 
 // Axios interceptor to handle token expiry
 axios.interceptors.response.use(

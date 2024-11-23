@@ -12,6 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
+from django.db import models
 from django.db.models import Q, Count
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
