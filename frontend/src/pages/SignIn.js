@@ -80,12 +80,15 @@ const SignIn = ({ setUser }) => {
             Sign up now
           </Link>
         </p>
-        <button
-          onClick={() => setShowForgotPassword(true)}
-          className="forgot-password-button"
-        >
-          Forgot Password?
-        </button>
+        <p>
+          <a
+            href="#"
+            onClick={() => setShowForgotPassword(true)}
+            className="forgot-password-link"
+          >
+            Forgot Password?
+          </a>
+        </p>
       </div>
 
       {showForgotPassword && (

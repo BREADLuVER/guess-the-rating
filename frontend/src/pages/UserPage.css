@@ -5,3 +5,22 @@
     min-height: 100vh;
     padding: 20px;
   }
+
+  .forgot-password-link {
+  display: block;
+  text-align: center;
+  margin-top: 20px;
+  color: #4caf50; /* Green text */
+  font-size: 1em;
+  text-decoration: none; /* Remove underline */
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.forgot-password-link:hover {
+  color: #45a049; /* Darker green on hover */
+}
+
+.forgot-password-link:active {
+  color: #3e8e41; /* Even darker green on click */
+}

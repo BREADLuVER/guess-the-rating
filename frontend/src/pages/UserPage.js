@@ -91,15 +91,6 @@ const UserPage = () => {
           <button onClick={handleSignOut}>Log Out</button>
         </div>
 
-        {/* Forgot Password */}
-        <div>
-          <button
-            onClick={() => setShowForgotPassword(true)}
-            className="forgot-password-button"
-          >
-            Forgot Password?
-          </button>
-        </div>
         {showForgotPassword && (
           <div className="forgot-password-modal">
             <h3>Forgot Password</h3>
