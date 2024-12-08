@@ -33,4 +33,6 @@ urlpatterns = [
     path('login/', views.UserSignInView.as_view(), name='login'),
     path('user/', views.UserDetailsView.as_view(), name='user-details'),
     path('api/user/password/', views.UpdatePasswordView.as_view(), name='update-password'),
+    path('api/password-reset/', views.send_password_reset_email, name='password-reset'),
+    path('api/password-reset/confirm/<uidb64>/<token>/', views.reset_password_confirm, name='password-reset-confirm'),
 ]   

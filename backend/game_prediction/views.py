@@ -25,6 +25,8 @@ import logging
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.mail import send_mail
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 
 logger = logging.getLogger(__name__)
 
@@ -334,20 +336,47 @@ class UpdatePasswordView(APIView):
 @api_view(['POST'])
 def send_password_reset_email(request):
     email = request.data.get('email')
+
     if not email:
-        return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         user = User.objects.get(email=email)
         token = default_token_generator.make_token(user)
-        reset_url = f"{request.build_absolute_uri('/reset-password')}?token={token}&email={email}"
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        reset_url = f"http://localhost:8000/api/password-reset/confirm/{uid}/{token}/"
+
+        # Send email using Mailtrap
         send_mail(
             'Password Reset Request',
-            f'Click the link to reset your password: {reset_url}',
-            'noreply@yourdomain.com',
+            f'Click the link below to reset your password:\n{reset_url}',
+            'noreply@example.com',
             [email],
             fail_silently=False,
         )
         return Response({'message': 'Password reset email sent.'}, status=status.HTTP_200_OK)
     except User.DoesNotExist:
-        return Response({'error': 'No user found with this email.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'User with this email does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+def reset_password_confirm(request, uidb64, token):
+    new_password = request.data.get('new_password')
+
+    if not new_password:
+        return Response({'error': 'New password is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+
+        if not default_token_generator.check_token(user, token):
+            return Response({'error': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Set the new password
+        user.set_password(new_password)
+        user.save()
+
+        return Response({'message': 'Password reset successful.'}, status=status.HTTP_200_OK)
+    except (User.DoesNotExist, ValueError, TypeError):
+        return Response({'error': 'Invalid token or user.'}, status=status.HTTP_400_BAD_REQUEST)
