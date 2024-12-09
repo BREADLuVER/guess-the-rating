@@ -244,5 +244,5 @@ EMAIL_HOST_USER = os.getenv('MAILTRAP_USERNAME')
 EMAIL_HOST_PASSWORD = os.getenv('MAILTRAP_PASSWORD')
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-DEFAULT_FROM_EMAIL = 'noreply@example.com'
+DEFAULT_FROM_EMAIL = 'gtr-admin@gmail.com'
 

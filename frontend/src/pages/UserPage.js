@@ -71,7 +71,7 @@ const UserPage = () => {
     <div className="user-page">
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <h2>User Settings</h2>
-        <div style={{ marginBottom: '20px' }}>
+        <div style={{ marginBottom: '20px', width: '50%', margin: '0 auto' }}>
           <h3>Change Password</h3>
           <input
             type="password"
@@ -87,6 +87,16 @@ const UserPage = () => {
           />
           <button onClick={handleChangePassword}>Change Password</button>
         </div>
+
+        <div style={{ margin: '20px auto', textAlign: 'center' }}>
+          <button
+            className="forgot-password-link"
+            onClick={() => setShowForgotPassword(true)}
+          >
+            Forgot Password?
+          </button>
+        </div>
+
         <div>
           <button onClick={handleSignOut}>Log Out</button>
         </div>
