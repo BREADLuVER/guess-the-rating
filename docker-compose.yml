@@ -21,7 +21,7 @@ services:
       - ./backend:/app
       - ./backend/staticfiles:/app/staticfiles
     env_file:
-      - ./backend/.env
+      - ./backend/guess_the_rating/settings/.env
     depends_on:
       - db
     healthcheck:  # Optional: Add a health check to improve reliability with depends_on
