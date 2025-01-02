@@ -22,16 +22,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env file
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-print("MAILTRAP_USERNAME:", os.getenv('MAILTRAP_USERNAME'))
-print("MAILTRAP_PASSWORD:", os.getenv('MAILTRAP_PASSWORD'))
-
-# Ensure other environment variables are also being read correctly
-print("DB_NAME:", os.getenv('DB_NAME'))
-print("DB_USER:", os.getenv('DB_USER'))
-print("DB_PASSWORD:", os.getenv('DB_PASSWORD'))
-print("DB_HOST:", os.getenv('DB_HOST'))
-print("DB_PORT:", os.getenv('DB_PORT'))
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
